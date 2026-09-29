@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+
+    <!--
+      ВАЖНО: не используем maximum-scale/user-scalable=no.
+      Блокировка зума плохо влияет на доступность (WCAG 1.4.4).
+      viewport-fit=cover — убирает белую полосу под home-баром на iPhone X+.
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0284c7" />
+
+    <!-- Иконки -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png" />
+
+    <!-- PWA -->
+    <!-- ВАЖНО (исправлено): было /manifest.webmanifest.txt — браузер
+         отдавал 404, PWA не устанавливалась. Файл переименован в
+         /manifest.webmanifest. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="ИТ Школа" />
+
+    <title>ИТ Школа Ростелеком · CRM</title>
+    <meta
+      name="description"
+      content="Система контроля и обработки статистических данных по обучению студентов ВУЗов и школ по ИТ-направлениям"
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="ИТ Школа Ростелеком · CRM" />
+    <meta
+      property="og:description"
+      content="CRM для работы с вузами по ИТ-направлениям"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:locale" content="ru_RU" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ИТ Школа Ростелеком · CRM" />
+    <meta name="twitter:image" content="/og-image.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx?t=1790603494887"></script>
+  </body>
+</html>

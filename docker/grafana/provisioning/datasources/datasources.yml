@@ -1,0 +1,52 @@
+# docker/grafana/provisioning/dashboards/dashboards.yml
+#
+# Провайдер авто-загрузки дашбордов из /var/lib/grafana/dashboards.
+# Файлы .json в этом каталоге подхватываются при старте Grafana и
+# обновляются каждые 30 секунд (если файл изменился).
+#
+# ВАЖНО: изменения, сделанные через UI, не сохраняются обратно в файл —
+# правки нужно вносить в JSON (или через UI + экспорт + git-коммит).
+
+apiVersion: 1
+
+providers:
+  - name: 'crm'
+    orgId: 1
+    folder: 'CRM ИТ Школа'
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    uid: prometheus
+    editable: false
+    jsonData:
+      timeInterval: 15s
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    uid: loki
+    editable: false
+
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    uid: tempo
+    editable: false
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: loki
+        tags: [{ key: 'service.name', value: 'crm-backend' }]
+      nodeGraph:
+        enabled: true

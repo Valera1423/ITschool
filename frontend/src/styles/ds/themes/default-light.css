@@ -1,0 +1,203 @@
+/* frontend/src/styles/ds/themes/default-light.css */
+
+.Theme_root_rtk_default_light {
+  /* ═══ BASE ═══ */
+  --atmr-base-accent:    #ff4f12;
+  --atmr-base-status-01: #7700ff;
+
+  /* ═══ ACCENT PALETTE ═══ */
+  --atmr-accent-0:    #fff;
+  --atmr-accent-10:   #fffaf8;
+  --atmr-accent-25:   #fff6f3;
+  --atmr-accent-50:   #ffede7;
+  --atmr-accent-100:  #ffd3c4;
+  --atmr-accent-200:  #ffa789;
+  --atmr-accent-300:  #ff8d65;
+  --atmr-accent-400:  #ff7241;
+  --atmr-accent-500:  var(--atmr-base-accent);
+  --atmr-accent-600:  #d9430f;
+  --atmr-accent-700:  #b3370d;
+  --atmr-accent-800:  #992f0b;
+  --atmr-accent-900:  #802809;
+  --atmr-accent-925:  #6e2208;
+  --atmr-accent-950:  #591c06;
+  --atmr-accent-990:  #331004;
+  --atmr-accent-1000: #000;
+
+  /* ═══ STATUS-01 PALETTE (в default-теме = фиолетовый) ═══ */
+  --atmr-status-01-0:    #fff;
+  --atmr-status-01-10:   #fbf7ff;
+  --atmr-status-01-25:   #f8f2ff;
+  --atmr-status-01-50:   #f1e6ff;
+  --atmr-status-01-100:  #ddbfff;
+  --atmr-status-01-200:  #bb80ff;
+  --atmr-status-01-300:  #a759ff;
+  --atmr-status-01-400:  #9233ff;
+  --atmr-status-01-500:  var(--atmr-base-status-01);
+  --atmr-status-01-600:  #6500d9;
+  --atmr-status-01-700:  #5300b3;
+  --atmr-status-01-800:  #470099;
+  --atmr-status-01-900:  #3c0080;
+  --atmr-status-01-925:  #33006e;
+  --atmr-status-01-950:  #2a0059;
+  --atmr-status-01-990:  #180033;
+  --atmr-status-01-1000: #000;
+
+  /* ═══ NEUTRAL SEMANTIC (те же значения, что в shared) ═══ */
+  --atmr-neutral-default: var(--atmr-neutral-500);
+  --atmr-neutral-soft:    var(--atmr-neutral-400);
+  --atmr-neutral-muted:   var(--atmr-neutral-200);
+  --atmr-neutral-hover:   var(--atmr-neutral-600);
+  --atmr-neutral-active:  var(--atmr-neutral-700);
+  --atmr-neutral-on-neutral: var(--atmr-neutral-0);
+  --atmr-neutral-container-default: rgba(88, 93, 105, 0.1);
+  --atmr-neutral-container-soft:    rgba(88, 93, 105, 0.05);
+  --atmr-neutral-container-muted:   rgba(88, 93, 105, 0.03);
+  --atmr-neutral-container-hover:   rgba(88, 93, 105, 0.2);
+  --atmr-neutral-container-active:  rgba(88, 93, 105, 0.3);
+  --atmr-neutral-on-container: var(--atmr-neutral-500);
+
+  /* ═══ ACCENT SEMANTIC ═══ */
+  --atmr-accent-default: var(--atmr-accent-500);
+  --atmr-accent-soft:    var(--atmr-accent-400);
+  --atmr-accent-muted:   var(--atmr-accent-200);
+  --atmr-accent-hover:   var(--atmr-accent-600);
+  --atmr-accent-active:  var(--atmr-accent-700);
+  --atmr-accent-on-accent: var(--atmr-accent-0);
+  --atmr-accent-container-default: rgba(255, 79, 18, 0.1);
+  --atmr-accent-container-soft:    rgba(255, 79, 18, 0.05);
+  --atmr-accent-container-muted:   rgba(255, 79, 18, 0.03);
+  --atmr-accent-container-hover:   rgba(255, 79, 18, 0.2);
+  --atmr-accent-container-active:  rgba(255, 79, 18, 0.3);
+  --atmr-accent-on-container: var(--atmr-accent-500);
+
+  /* ═══ SUCCESS SEMANTIC ═══ */
+  --atmr-success-default: var(--atmr-success-500);
+  --atmr-success-soft:    var(--atmr-success-400);
+  --atmr-success-muted:   var(--atmr-success-200);
+  --atmr-success-hover:   var(--atmr-success-600);
+  --atmr-success-active:  var(--atmr-success-700);
+  --atmr-success-on-success: var(--atmr-success-0);
+  --atmr-success-container-default: rgba(0, 172, 67, 0.1);
+  --atmr-success-container-soft:    rgba(0, 172, 67, 0.05);
+  --atmr-success-container-muted:   rgba(0, 172, 67, 0.03);
+  --atmr-success-container-hover:   rgba(0, 172, 67, 0.2);
+  --atmr-success-container-active:  rgba(0, 172, 67, 0.3);
+  --atmr-success-on-container: var(--atmr-success-500);
+
+  /* ═══ WARNING SEMANTIC ═══ */
+  --atmr-warning-default: var(--atmr-warning-500);
+  --atmr-warning-soft:    var(--atmr-warning-400);
+  --atmr-warning-muted:   var(--atmr-warning-200);
+  --atmr-warning-hover:   var(--atmr-warning-600);
+  --atmr-warning-active:  var(--atmr-warning-700);
+  --atmr-warning-on-warning: var(--atmr-warning-990);
+  --atmr-warning-container-default: rgba(253, 166, 16, 0.1);
+  --atmr-warning-container-soft:    rgba(253, 166, 16, 0.05);
+  --atmr-warning-container-muted:   rgba(253, 166, 16, 0.03);
+  --atmr-warning-container-hover:   rgba(253, 166, 16, 0.2);
+  --atmr-warning-container-active:  rgba(253, 166, 16, 0.3);
+  --atmr-warning-on-container: var(--atmr-warning-600);
+
+  /* ═══ ERROR SEMANTIC ═══ */
+  --atmr-error-default: var(--atmr-error-500);
+  --atmr-error-soft:    var(--atmr-error-400);
+  --atmr-error-muted:   var(--atmr-error-200);
+  --atmr-error-hover:   var(--atmr-error-600);
+  --atmr-error-active:  var(--atmr-error-700);
+  --atmr-error-on-error: var(--atmr-error-0);
+  --atmr-error-container-default: rgba(255, 38, 38, 0.1);
+  --atmr-error-container-soft:    rgba(255, 38, 38, 0.05);
+  --atmr-error-container-muted:   rgba(255, 38, 38, 0.03);
+  --atmr-error-container-hover:   rgba(255, 38, 38, 0.2);
+  --atmr-error-container-active:  rgba(255, 38, 38, 0.3);
+  --atmr-error-on-container: var(--atmr-error-500);
+
+  /* ═══ INFO SEMANTIC ═══ */
+  --atmr-info-default: var(--atmr-info-500);
+  --atmr-info-soft:    var(--atmr-info-400);
+  --atmr-info-muted:   var(--atmr-info-200);
+  --atmr-info-hover:   var(--atmr-info-600);
+  --atmr-info-active:  var(--atmr-info-700);
+  --atmr-info-on-info: var(--atmr-info-0);
+  --atmr-info-container-default: rgba(31, 105, 255, 0.1);
+  --atmr-info-container-soft:    rgba(31, 105, 255, 0.05);
+  --atmr-info-container-muted:   rgba(31, 105, 255, 0.03);
+  --atmr-info-container-hover:   rgba(31, 105, 255, 0.2);
+  --atmr-info-container-active:  rgba(31, 105, 255, 0.3);
+  --atmr-info-on-container: var(--atmr-info-500);
+
+  /* ═══ STATUS-01 SEMANTIC ═══ */
+  --atmr-status-01-default: var(--atmr-status-01-500);
+  --atmr-status-01-soft:    var(--atmr-status-01-400);
+  --atmr-status-01-muted:   var(--atmr-status-01-200);
+  --atmr-status-01-hover:   var(--atmr-status-01-600);
+  --atmr-status-01-active:  var(--atmr-status-01-700);
+  --atmr-status-01-on-status-01: var(--atmr-status-01-0);
+  --atmr-status-01-container-default: rgba(119, 0, 255, 0.1);
+  --atmr-status-01-container-soft:    rgba(119, 0, 255, 0.05);
+  --atmr-status-01-container-muted:   rgba(119, 0, 255, 0.03);
+  --atmr-status-01-container-hover:   rgba(119, 0, 255, 0.2);
+  --atmr-status-01-container-active:  rgba(119, 0, 255, 0.3);
+  --atmr-status-01-on-container: var(--atmr-status-01-500);
+
+  /* ═══ STATUS-02..06 SEMANTIC ═══ */
+  /* (аналогично, один блок на каждый статус — здесь для краткости опущены,
+     значения берутся из shared palette + контейнеры из соответствующих rgba) */
+
+  /* ═══ FOREGROUND ═══ */
+  --atmr-fg-default:  var(--atmr-neutral-990);
+  --atmr-fg-soft:     rgba(16, 24, 40, 0.75);
+  --atmr-fg-muted:    rgba(16, 24, 40, 0.55);
+  --atmr-fg-disabled: rgba(16, 24, 40, 0.35);
+
+  /* ═══ BACKGROUND ═══ */
+  --atmr-bg-surface1:    var(--atmr-neutral-0);
+  --atmr-bg-surface2:    var(--atmr-neutral-10);
+  --atmr-bg-surface3:    var(--atmr-neutral-25);
+  --atmr-bg-surface4:    var(--atmr-neutral-50);
+  --atmr-bg-surface5:    var(--atmr-neutral-100);
+  --atmr-bg-page:        var(--atmr-neutral-0);
+  --atmr-bg-page-filled: var(--atmr-neutral-25);
+  --atmr-bg-disabled:    rgba(88, 93, 105, 0.1);
+  --atmr-bg-elevated-0:  var(--atmr-neutral-0);
+  --atmr-bg-elevated-s:  var(--atmr-neutral-0);
+  --atmr-bg-elevated-m:  var(--atmr-neutral-0);
+  --atmr-bg-elevated-l:  var(--atmr-neutral-0);
+  --atmr-bg-elevated-xl: var(--atmr-neutral-0);
+
+  /* ═══ BORDER ═══ */
+  --atmr-border-default: rgba(88, 93, 105, 0.5);
+  --atmr-border-soft:    rgba(88, 93, 105, 0.25);
+  --atmr-border-muted:   rgba(88, 93, 105, 0.15);
+
+  /* ═══ FOCUS ═══ */
+  --atmr-focus-base-soft:     rgba(255, 79, 18, 0.1);
+  --atmr-focus-base-contrast: rgba(255, 79, 18, 0.1);
+  --atmr-focus-base-extra:    var(--atmr-bg-surface1);
+
+  /* ═══ STATIC ═══ */
+  --atmr-static-black: var(--atmr-neutral-990);
+  --atmr-static-white: var(--atmr-neutral-0);
+
+  /* ═══ DISAPPEAR ═══ */
+  --atmr-disappear-elevated-xl: rgba(255, 255, 255, 0);
+
+  /* ═══ SHADOWS ═══ */
+  --atmr-shadow-none: inset 0 0 0 0 rgba(0, 0, 0, 0);
+  --atmr-shadow-bottom-s:  0 0 8px 0 rgba(88, 93, 105, 0.1),  0 2px 4px 0 rgba(88, 93, 105, 0.05);
+  --atmr-shadow-bottom-m:  0 0 16px 0 rgba(88, 93, 105, 0.1), 0 4px 8px 0 rgba(88, 93, 105, 0.05);
+  --atmr-shadow-bottom-l:  0 0 20px 0 rgba(88, 93, 105, 0.1), 0 12px 20px 0 rgba(88, 93, 105, 0.05);
+  --atmr-shadow-bottom-xl: 0 0 32px 0 rgba(88, 93, 105, 0.1), 0 32px 32px 0 rgba(88, 93, 105, 0.05);
+  --atmr-shadow-bottom-controls: 0 0 1px 0 rgba(88, 93, 105, 0.1), 0 2px 2px 0 rgba(88, 93, 105, 0.2);
+  --atmr-shadow-bottom-accent-s:  0 2px 4px 0 rgba(255, 79, 18, 0.1), 0 0 8px 0 rgba(255, 79, 18, 0.05);
+  --atmr-shadow-bottom-accent-m:  0 4px 8px 0 rgba(255, 79, 18, 0.1), 0 0 16px 0 rgba(255, 79, 18, 0.05);
+  --atmr-shadow-bottom-accent-l:  0 12px 20px 0 rgba(255, 79, 18, 0.1), 0 0 20px 0 rgba(255, 79, 18, 0.05);
+  --atmr-shadow-bottom-accent-xl: 0 32px 32px 0 rgba(255, 79, 18, 0.1), 0 0 32px 0 rgba(255, 79, 18, 0.05);
+  --atmr-shadow-bottom-accent-controls: 0 2px 2px 0 rgba(255, 79, 18, 0.1), 0 0 1px 0 rgba(255, 79, 18, 0.2);
+  --atmr-shadow-top-s:  0 0 8px 0 rgba(88, 93, 105, 0.1),  0 -2px 4px 0 rgba(88, 93, 105, 0.05);
+  --atmr-shadow-top-m:  0 0 16px 0 rgba(88, 93, 105, 0.1), 0 -4px 8px 0 rgba(88, 93, 105, 0.05);
+  --atmr-shadow-top-l:  0 0 20px 0 rgba(88, 93, 105, 0.1), 0 -12px 20px 0 rgba(88, 93, 105, 0.05);
+  --atmr-shadow-top-xl: 0 0 32px 0 rgba(88, 93, 105, 0.1), 0 -32px 32px 0 rgba(88, 93, 105, 0.05);
+  --atmr-shadow-top-controls: 0 0 1px 0 rgba(88, 93, 105, 0.1), 0 -2px 2px 0 rgba(88, 93, 105, 0.2);
+}

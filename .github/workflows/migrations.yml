@@ -1,0 +1,33 @@
+name: DB Migrations
+
+on:
+  workflow_run:
+    workflows: [Deploy]
+    types: [completed]
+
+jobs:
+  migrate:
+    name: Run Prisma migrations on production
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run migrations via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/it-school-crm
+
+            # Миграции выполняет backend при старте (entrypoint.sh),
+            # но иногда полезно прогнать вручную:
+            docker compose -f docker-compose.prod.yml exec -T backend \
+              npx prisma migrate deploy
+
+            docker compose -f docker-compose.prod.yml exec -T backend \
+              npx prisma migrate status

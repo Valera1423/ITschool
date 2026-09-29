@@ -1,0 +1,1618 @@
+// ============================================================
+// Prisma schema — CRM ИТ Школы Ростелеком (self-hosted)
+// Единственный источник истины для структуры БД.
+// Все SQL-миграции — только через `prisma migrate`.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Профили и роли
+// ============================================================
+model Profile {
+  id          String    @id @db.Uuid
+  email       String    @unique
+  fullName    String    @map("full_name")
+  role        String    @default("nam") @db.VarChar(20) // admin | manager | nam
+  avatarColor String    @default("blue") @map("avatar_color")
+  blocked     Boolean   @default(false)
+  totpEnabled Boolean   @default(false) @map("totp_enabled")
+  keycloakSub String?   @unique @map("keycloak_sub")
+  lastLoginAt DateTime? @map("last_login_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  customRoleId String?    @map("custom_role_id") @db.Uuid
+  customRole   CustomRole? @relation(fields: [customRoleId], references: [id], onDelete: SetNull)
+
+  googleOAuth       GoogleOAuthToken?
+  contracts         Contract[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  pushSubscriptions PushSubscription[]
+  sessions          UserSession[]
+  preferences       UserPreferences?
+  scopes            UserScope[]
+
+  @@map("profiles")
+}
+
+model UserScope {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  entity    String   @default("universities")
+  filter    Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entity])
+  @@index([entity])
+  @@map("user_scopes")
+}
+
+// ============================================================
+// Расширение Vendor (файл «Вендоры.xlsx»)
+// ============================================================
+model Vendor {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  site        String?
+  // ── Контакты (для 152-ФЗ — шифруются)
+  contactName    String?
+  contactPhone   String?   // encrypted
+  contactEmail   String?   // encrypted
+  contactMethods String[]  @default([])   // ["Почта", "Чат в ТГ"]
+  notes          String?
+
+  products ItProduct[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// Курсы / потоки / заявки / слушатели (файл «Данные оплат.json»)
+// ============================================================
+model Course {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  streams     CourseStream[]
+  orders      Order[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CourseStream {
+  id        String    @id @default(uuid())
+  courseId  String
+  number    Int
+  startDate DateTime? @db.Date
+  endDate   DateTime? @db.Date
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  orders    Order[]
+  createdAt DateTime  @default(now())
+
+  @@unique([courseId, number])
+  @@index([courseId])
+}
+
+model Learner {
+  id          String  @id @default(uuid())
+  lastName    String
+  firstName   String
+  middleName  String?
+
+  // ── ПД уровня УЗ-1 (шифруются PiiService)
+  phone          String? // encrypted
+  email          String? // encrypted
+  snils          String? // encrypted
+  passportSeries String? // encrypted
+  passportNumber String? // encrypted
+  passportIssuedBy String? // encrypted
+  passportIssuedAt DateTime? @db.Date
+  passportDeptCode String? // encrypted
+  birthDate      DateTime? @db.Date
+  gender         String? // "М" | "Ж"
+
+  regRegion  String?
+  regCity    String?
+  regStreet  String?
+  regHouse   String?
+  regFlat    String?
+  regIndex   String? // encrypted
+
+  educationLevel     String?
+  diplomaProfession  String?
+  diplomaInstitution String?
+  diplomaLastName    String?
+  diplomaNumber      String? // encrypted
+  diplomaSeries      String? // encrypted
+  diplomaRegNumber   String? // encrypted
+  diplomaIssuedAt    DateTime? @db.Date
+
+  // ── Хэши для поиска (без ключа, только SHA-256)
+  phoneHash String? @unique
+  emailHash String? @unique
+
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lastName, firstName])
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  externalId String   @unique   // "ORD-20260313051569-OYJRVN"
+  courseId   String
+  streamId   String?
+  learnerId  String
+
+  status  String   @default("Новая")
+  paidAt  DateTime?
+  amount  Decimal? @db.Decimal(12, 2)
+
+  course   Course        @relation(fields: [courseId], references: [id])
+  stream   CourseStream? @relation(fields: [streamId], references: [id])
+  learner  Learner       @relation(fields: [learnerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([learnerId])
+  @@index([courseId])
+  @@index([streamId])
+}
+// ============================================================
+// Каталоги
+// ============================================================
+
+
+model ItDirection {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  code        String?
+  description String?
+  color       String   @default("sky")
+  sortOrder   Int      @default(100) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  universities University[]
+
+  @@map("it_directions")
+}
+
+model ItProduct {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  vendorId    String?  @map("vendor_id") @db.Uuid
+  description String?
+  licenseType String?  @map("license_type")
+  color       String   @default("sky")
+  sortOrder   Int      @default(100) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  vendor       Vendor?      @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  universities University[]
+
+  @@map("it_products")
+}
+
+model Manager {
+  id          String   @id @default(uuid()) @db.Uuid
+  profileId   String?  @map("profile_id") @db.Uuid
+  fullName    String   @unique @map("full_name")
+  email       String?
+  phone       String?
+  position    String?
+  department  String?
+  avatarColor String   @default("blue") @map("avatar_color")
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(100) @map("sort_order")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  universities University[]
+
+  @@index([active, sortOrder])
+  @@map("managers")
+}
+
+// ============================================================
+// Университеты
+// ============================================================
+model University {
+  id                String    @id @default(uuid()) @db.Uuid
+  name              String
+  city              String    @default("Москва")
+  direction         String    @default("Разработка")
+  product           String    @default("Ростелеком DataLab")
+  vendorId          String?   @map("vendor_id") @db.Uuid
+  directionId       String?   @map("direction_id") @db.Uuid
+  productId         String?   @map("product_id") @db.Uuid
+  managerId         String?   @map("manager_id") @db.Uuid
+  contractNumber    String?   @map("contract_number")
+  licenseSigned     Boolean   @default(false) @map("license_signed")
+  licenseExpiresAt  DateTime? @map("license_expires_at") @db.Date
+  status            String    @default("Новый")
+  handoverStatus    String    @default("Не передан") @map("handover_status")
+  manager           String    @default("Анна Кузнецова")
+  contactName       String?   @map("contact_name")
+  contactEmail      String?   @map("contact_email")
+  contactPhone      String?   @map("contact_phone")
+  telegram          String?
+  whatsapp          String?
+  maxMessenger      String?   @map("max_messenger")
+  source            String    @default("Вручную")
+  notes             String?
+  contractValue     Decimal   @default(0) @map("contract_value") @db.Decimal(14, 2)
+  firstResponseAt   DateTime? @map("first_response_at")
+  expectedCloseDate DateTime? @map("expected_close_date") @db.Date
+  closedAt          DateTime? @map("closed_at")
+  lossReason        String?   @map("loss_reason")
+  deletedAt         DateTime? @map("deleted_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  vendor        Vendor?              @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  directionRef  ItDirection?         @relation(fields: [directionId], references: [id], onDelete: SetNull)
+  productRef    ItProduct?           @relation(fields: [productId], references: [id], onDelete: SetNull)
+  managerRef    Manager?             @relation(fields: [managerId], references: [id], onDelete: SetNull)
+  contacts      UniversityContact[]
+  interactions  Interaction[]
+  tasks         Task[]
+  comments      Comment[]
+  documents     Document[]
+  contracts     Contract[]
+  tags          UniversityTag[]
+  transitions   WorkflowTransition[]
+  workflowLinks WorkflowUniversity[]
+  inboxMessages InboxMessage[]
+  calls         CallLog[]
+
+  @@index([deletedAt])
+  @@index([status])
+  @@index([manager])
+  @@map("universities")
+}
+
+model UniversityContact {
+  id           String   @id @default(uuid()) @db.Uuid
+  universityId String   @map("university_id") @db.Uuid
+  fullName     String   @map("full_name")
+  role         String?
+  email        String?
+  phone        String?
+  telegram     String?
+  whatsapp     String?
+  isPrimary    Boolean  @default(false) @map("is_primary")
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
+  @@map("university_contacts")
+}
+
+// ============================================================
+// Взаимодействия / задачи / комментарии
+// ============================================================
+model Interaction {
+  id              String    @id @default(uuid()) @db.Uuid
+  universityId    String    @map("university_id") @db.Uuid
+  type            String    @default("Звонок")
+  title           String
+  details         String?
+  interactionDate DateTime  @default(now()) @map("interaction_date") @db.Date
+  status          String    @default("Запланировано")
+  manager         String    @default("Анна Кузнецова")
+  startTime       String?   @map("start_time")
+  endTime         String?   @map("end_time")
+  allDay          Boolean   @default(false) @map("all_day")
+  meetingUrl      String?   @map("meeting_url")
+  location        String?
+  attendees       Json      @default("[]")
+  reminderMinutes Int?      @map("reminder_minutes")
+  color           String    @default("sky")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId, interactionDate])
+  @@index([interactionDate])
+  @@map("interactions")
+}
+
+model Task {
+  id           String    @id @default(uuid()) @db.Uuid
+  universityId String?   @map("university_id") @db.Uuid
+  title        String
+  description  String?
+  status       String    @default("К выполнению")
+  priority     String    @default("Средний")
+  dueDate      DateTime  @default(now()) @map("due_date") @db.Date
+  reminderAt   DateTime? @map("reminder_at")
+  assignee     String    @default("Анна Кузнецова")
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  university University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+
+  @@index([dueDate])
+  @@index([assignee])
+  @@index([status])
+  @@map("tasks")
+}
+
+model Comment {
+  id            String    @id @default(uuid()) @db.Uuid
+  universityId  String?   @map("university_id") @db.Uuid
+  interactionId String?   @map("interaction_id") @db.Uuid
+  taskId        String?   @map("task_id") @db.Uuid
+  author        String    @default("Анна Кузнецова")
+  body          String
+  attachments   Json      @default("[]")   // NEW
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  university University? @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
+  @@map("comments")
+}
+
+// ============================================================
+// Workflow
+// ============================================================
+model Workflow {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  status      String    @default("Активен")
+  runsCount   Int       @default(0) @map("runs_count")
+  isDefault   Boolean   @default(false) @map("is_default")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  steps           WorkflowStep[]
+  universities    WorkflowUniversity[]
+  transitionRules WorkflowTransitionRule[]   // NEW
+
+  @@map("workflows")
+}
+
+model WorkflowStep {
+  id         String   @id @default(uuid()) @db.Uuid
+  workflowId String   @map("workflow_id") @db.Uuid
+  title      String
+  stepOrder  Int      @default(1) @map("step_order")
+  status     String   @default("Ожидает")
+  statusCode String?  @map("status_code")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  workflow           Workflow                 @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  transitions        WorkflowTransition[]
+  currentInWorkflows WorkflowUniversity[]     @relation("CurrentStep")
+  rulesFrom          WorkflowTransitionRule[] @relation("RuleFromStep")   // NEW
+  rulesTo            WorkflowTransitionRule[] @relation("RuleToStep")     // NEW
+
+  @@index([workflowId, stepOrder])
+  @@map("workflow_steps")
+}
+
+model WorkflowUniversity {
+  id            String    @id @default(uuid()) @db.Uuid
+  workflowId    String    @map("workflow_id") @db.Uuid
+  universityId  String    @map("university_id") @db.Uuid
+  currentStepId String?   @map("current_step_id") @db.Uuid
+  status        String    @default("В работе")
+  startedAt     DateTime  @default(now()) @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  workflow    Workflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  university  University    @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  currentStep WorkflowStep? @relation("CurrentStep", fields: [currentStepId], references: [id], onDelete: SetNull)
+
+  @@unique([workflowId, universityId])
+  @@index([universityId])
+  @@map("workflow_universities")
+}
+
+model WorkflowTransition {
+  id           String   @id @default(uuid()) @db.Uuid
+  stepId       String   @map("step_id") @db.Uuid
+  universityId String   @map("university_id") @db.Uuid
+  fromStatus   String?  @map("from_status")
+  toStatus     String   @map("to_status")
+  comment      String
+  attachments  Json     @default("[]")
+  actorName    String   @map("actor_name")
+  actorId      String?  @map("actor_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  step       WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  university University   @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([stepId, createdAt])
+  @@index([universityId, createdAt])
+  @@map("workflow_transitions")
+}
+
+// ============================================================
+// Правила переходов между шагами workflow
+// ============================================================
+model WorkflowTransitionRule {
+  id         String   @id @default(uuid()) @db.Uuid
+  workflowId String   @map("workflow_id") @db.Uuid
+  fromStepId String   @map("from_step_id") @db.Uuid
+  toStepId   String   @map("to_step_id") @db.Uuid
+  /**
+   * Условие необязательно. Формат — JSON-объект вида
+   *   { field: "status", operator: "not_equals", value: "Отказ" }
+   * Проверяется в POST /workflows/transitions, если задано.
+   */
+  condition  Json     @default("{}")
+  /** Пометка: требуется комментарий (по ТЗ п.2 он обязателен, но
+   *  иногда хочется пометить «важный» переход отдельно). */
+  requiresComment Boolean @default(true) @map("requires_comment")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  workflow Workflow     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  fromStep WorkflowStep @relation("RuleFromStep", fields: [fromStepId], references: [id], onDelete: Cascade)
+  toStep   WorkflowStep @relation("RuleToStep",   fields: [toStepId],   references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, fromStepId, toStepId])
+  @@index([workflowId])
+  @@index([fromStepId])
+  @@index([toStepId])
+  @@map("workflow_transition_rules")
+}
+
+model WorkflowStatusCatalog {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  label     String
+  color     String   @default("slate")
+  sortOrder Int      @default(100) @map("sort_order")
+  isFinal   Boolean  @default(false) @map("is_final")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("workflow_status_catalog")
+}
+
+// ============================================================
+// Теги
+// ============================================================
+model Tag {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  color       String   @default("sky")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  universities UniversityTag[]
+
+  @@map("tags")
+}
+
+model UniversityTag {
+  universityId String   @map("university_id") @db.Uuid
+  tagId        String   @map("tag_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  tag        Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([universityId, tagId])
+  @@index([tagId])
+  @@map("university_tags")
+}
+
+// ============================================================
+// Документы
+// ============================================================
+model Document {
+  id           String    @id @default(uuid()) @db.Uuid
+  universityId String    @map("university_id") @db.Uuid
+  name         String
+  description  String?
+  category     String    @default("Документ")
+  storagePath  String    @map("storage_path")
+  mimeType     String    @map("mime_type")
+  sizeBytes    BigInt    @default(0) @map("size_bytes")
+  version      Int       @default(1)
+  parentId     String?   @map("parent_document_id") @db.Uuid
+  uploadedBy   String    @default("Пользователь") @map("uploaded_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
+  @@map("documents")
+}
+
+// ============================================================
+// Договоры
+// ============================================================
+model Contract {
+  id             String    @id @default(uuid()) @db.Uuid
+  universityId   String    @map("university_id") @db.Uuid
+  title          String
+  contractNumber String?   @map("contract_number")
+  amount         Decimal   @default(0) @db.Decimal(14, 2)
+  currency       String    @default("RUB")
+  status         String    @default("Черновик")
+  currentStep    Int       @default(0) @map("current_step")
+  signedAt       DateTime? @map("signed_at")
+  expiresAt      DateTime? @map("expires_at") @db.Date
+  signedDocId    String?   @map("signed_document_id") @db.Uuid
+  notes          String?
+  createdBy      String?   @map("created_by") @db.Uuid
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  university University         @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  creator    Profile?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  approvals  ContractApproval[]
+  versions   ContractVersion[]
+  edoDocs    EdoDocument[]
+
+  @@index([universityId])
+  @@index([status])
+  @@map("contracts")
+}
+
+model ContractApproval {
+  id           String    @id @default(uuid()) @db.Uuid
+  contractId   String    @map("contract_id") @db.Uuid
+  stepOrder    Int       @map("step_order")
+  role         String
+  approverName String?   @map("approver_name")
+  approverId   String?   @map("approver_id") @db.Uuid
+  status       String    @default("Ожидает")
+  comment      String?
+  decidedAt    DateTime? @map("decided_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, stepOrder])
+  @@map("contract_approvals")
+}
+
+model ContractVersion {
+  id          String   @id @default(uuid()) @db.Uuid
+  contractId  String   @map("contract_id") @db.Uuid
+  version     Int      @default(1)
+  documentId  String?  @map("document_id") @db.Uuid
+  storagePath String   @map("storage_path")
+  name        String
+  sizeBytes   BigInt   @default(0) @map("size_bytes")
+  uploadedBy  String   @map("uploaded_by")
+  comment     String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, version])
+  @@map("contract_versions")
+}
+
+// ============================================================
+// Сегменты
+// ============================================================
+model Segment {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  entity      String    @default("universities")
+  rules       Json      @default("[]")
+  logic       String    @default("AND")
+  color       String    @default("sky")
+  createdBy   String?   @map("created_by") @db.Uuid
+  shared      Boolean   @default(false)
+  autoRefresh Boolean   @default(true) @map("auto_refresh")
+  lastCount   Int       @default(0) @map("last_count")
+  lastRunAt   DateTime? @map("last_run_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("segments")
+}
+
+// ============================================================
+// Дашборды
+// ============================================================
+model Dashboard {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  name        String
+  description String?
+  isDefault   Boolean  @default(false) @map("is_default")
+  shared      Boolean  @default(false)
+  layout      Json     @default("[]")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("dashboards")
+}
+
+// ============================================================
+// База знаний
+// ============================================================
+model KbCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String   @default("BookOpen")
+  color       String   @default("sky")
+  sortOrder   Int      @default(100) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  articles KbArticle[]
+
+  @@map("kb_categories")
+}
+
+model KbArticle {
+  id              String    @id @default(uuid()) @db.Uuid
+  categoryId      String?   @map("category_id") @db.Uuid
+  title           String
+  slug            String    @unique
+  excerpt         String?
+  content         String    @default("")
+  tags            String[]  @default([])
+  status          String    @default("published")
+  pinned          Boolean   @default(false)
+  views           Int       @default(0)
+  helpfulCount    Int       @default(0) @map("helpful_count")
+  notHelpfulCount Int       @default(0) @map("not_helpful_count")
+  authorId        String?   @map("author_id") @db.Uuid
+  authorName      String?   @map("author_name")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  category KbCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  feedback KbFeedback[]
+
+  @@index([categoryId])
+  @@map("kb_articles")
+}
+
+model KbFeedback {
+  id        BigInt   @id @default(autoincrement())
+  articleId String   @map("article_id") @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  helpful   Boolean
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  article KbArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("kb_feedback")
+}
+
+// ============================================================
+// Аудит
+// ============================================================
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  userEmail String?  @map("user_email")
+  entity    String
+  entityId  String?  @map("entity_id") @db.Uuid
+  action    String
+  before    Json?
+  after     Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user Profile? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_log")
+}
+
+// ============================================================
+// Интеграции
+// ============================================================
+model Integration {
+  id             String    @id @default(uuid()) @db.Uuid
+  name           String
+  type           String    @default("custom_api")
+  config         Json      @default("{}")
+  status         String    @default("Активна")
+  lastCheckAt    DateTime? @map("last_check_at")
+  lastError      String?   @map("last_error")
+  lastSyncAt     DateTime? @map("last_sync_at")
+  lastSyncStatus String?   @map("last_sync_status")
+  lastSyncCount  Int       @default(0) @map("last_sync_count")
+  syncSchedule   String    @default("0 */2 * * *") @map("sync_schedule")
+  autoSync       Boolean   @default(false) @map("auto_sync")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  endpoints IntegrationEndpoint[]
+  syncLogs  IntegrationSyncLog[]
+
+  @@map("integrations")
+}
+
+model IntegrationEndpoint {
+  id            String   @id @default(uuid()) @db.Uuid
+  integrationId String   @map("integration_id") @db.Uuid
+  name          String
+  path          String
+  method        String   @default("GET")
+  entity        String?
+  enabled       Boolean  @default(true)
+  sortOrder     Int      @default(100) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  integration Integration               @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  mappings    IntegrationFieldMapping[]
+  syncLogs    IntegrationSyncLog[]
+
+  @@index([integrationId, sortOrder])
+  @@map("integration_endpoints")
+}
+
+model IntegrationFieldMapping {
+  id           String   @id @default(uuid()) @db.Uuid
+  endpointId   String   @map("endpoint_id") @db.Uuid
+  sourceField  String   @map("source_field")
+  targetField  String   @map("target_field")
+  transform    String   @default("string")
+  transformArg String?  @map("transform_arg")
+  required     Boolean  @default(false)
+  defaultValue String?  @map("default_value")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  endpoint IntegrationEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId])
+  @@map("integration_field_mappings")
+}
+
+model IntegrationSyncLog {
+  id             BigInt    @id @default(autoincrement())
+  integrationId  String    @map("integration_id") @db.Uuid
+  endpointId     String?   @map("endpoint_id") @db.Uuid
+  trigger        String    @default("manual")
+  startedAt      DateTime  @default(now()) @map("started_at")
+  finishedAt     DateTime? @map("finished_at")
+  durationMs     Int?      @map("duration_ms")
+  status         String    @default("running")
+  recordsFetched Int       @default(0) @map("records_fetched")
+  recordsCreated Int       @default(0) @map("records_created")
+  recordsUpdated Int       @default(0) @map("records_updated")
+  recordsSkipped Int       @default(0) @map("records_skipped")
+  recordsFailed  Int       @default(0) @map("records_failed")
+  errorMessage   String?   @map("error_message")
+  requestUrl     String?   @map("request_url")
+  responseSample Json?     @map("response_sample")
+  errors         Json      @default("[]")
+  actor          String?
+
+  integration Integration          @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  endpoint    IntegrationEndpoint? @relation(fields: [endpointId], references: [id], onDelete: SetNull)
+
+  @@index([integrationId, startedAt])
+  @@index([status, startedAt])
+  @@map("integration_sync_logs")
+}
+
+// ============================================================
+// Уведомления и push
+// ============================================================
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  type      String
+  title     String
+  body      String?
+  entity    String?
+  entityId  String?  @map("entity_id") @db.Uuid
+  actionUrl String?  @map("action_url")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user Profile? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+// ============================================================
+// Sessions
+// ============================================================
+model UserSession {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  tokenHash    String   @unique @map("token_hash")
+  ip           String?
+  userAgent    String?  @map("user_agent")
+  deviceLabel  String?  @map("device_label")
+  lastActiveAt DateTime @default(now()) @map("last_active_at")
+  expiresAt    DateTime @map("expires_at")
+  revoked      Boolean  @default(false)
+  revokedAt    DateTime? @map("revoked_at")
+  revokedReason String?  @map("revoked_reason")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revoked])
+  @@index([expiresAt])
+  @@index([lastActiveAt])
+  @@map("user_sessions")
+}
+
+// ============================================================
+// IP whitelist
+// ============================================================
+model IpWhitelistEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  cidr      String   @unique
+  label     String?
+  enabled   Boolean  @default(true)
+  createdBy String   @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("ip_whitelist")
+}
+
+// ============================================================
+// Security events
+// ============================================================
+model SecurityEvent {
+  id        Int      @id @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  email     String?
+  eventType String   @map("event_type")
+  severity  String   @default("info")
+  ip        String?
+  userAgent String?  @map("user_agent")
+  details   Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([severity])
+  @@map("security_events")
+}
+
+// ============================================================
+// Журнал доступа к персональным данным (ФСТЭК №117)
+// ============================================================
+//
+// Записывается каждый раз, когда:
+//   - пользователь получает ПД в API-ответе
+//     (contactEmail, contactPhone, telegram, whatsapp);
+//   - кто-то запрашивает /security/pd/export.
+//
+// Хранение: 1 год (требование ФСТЭК для журналов ИБ).
+// Поля:
+//   userId    — кто обратился
+//   subjectId — к каким ПД (например, id университета)
+//   fields    — список полей, к которым был доступ
+//   purpose   — зачем (view | export | edit)
+//   ip/ua     — из запроса
+model PiiAccessLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     String?  @map("user_id") @db.Uuid
+  userEmail  String?  @map("user_email")
+  subjectId  String?  @map("subject_id") @db.Uuid
+  entity     String   @default("universities")
+  fields     String[] @default([])
+  purpose    String   @default("view")
+  ip         String?
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([subjectId, createdAt])
+  @@index([createdAt])
+  @@map("pii_access_log")
+}
+
+// ============================================================
+// 152-ФЗ consents
+// ============================================================
+model PdConsent {
+  id              String    @id @default(uuid()) @db.Uuid
+  subjectType     String    @map("subject_type")
+  subjectId       String?   @map("subject_id") @db.Uuid
+  subjectEmail    String    @map("subject_email")
+  subjectName     String?   @map("subject_name")
+  consentType     String    @default("pd_processing") @map("consent_type")
+  granted         Boolean   @default(true)
+  grantedAt       DateTime  @default(now()) @map("granted_at")
+  revokedAt       DateTime? @map("revoked_at")
+  documentVersion String?   @map("document_version")
+  source          String
+  ip              String?
+  notes           String?
+  createdBy       String?   @map("created_by") @db.Uuid
+
+  @@index([subjectEmail])
+  @@index([granted])
+  @@map("pd_consents")
+}
+
+// ============================================================
+// Onboarding и настройки
+// ============================================================
+model OnboardingStep {
+  id             String   @id @default(uuid()) @db.Uuid
+  stepKey        String   @unique @map("step_key")
+  title          String
+  description    String?
+  targetSelector String?  @map("target_selector")
+  position       String   @default("bottom")
+  sortOrder      Int      @default(100) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("onboarding_steps")
+}
+
+model OnboardingProgress {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  stepKey     String   @map("step_key")
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  @@unique([userId, stepKey])
+  @@map("onboarding_progress")
+}
+
+model UserPreferences {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @unique @map("user_id") @db.Uuid
+  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
+  onboardingDismissed Boolean  @default(false) @map("onboarding_dismissed")
+  tourCompleted       Boolean  @default(false) @map("tour_completed")
+  compactMode         Boolean  @default(false) @map("compact_mode")
+  emailNotifications  Boolean  @default(true) @map("email_notifications")
+  pushNotifications   Boolean  @default(true) @map("push_notifications")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model ProfileSettings {
+  id                   String   @id @default(uuid()) @db.Uuid
+  fullName             String   @map("full_name")
+  email                String
+  role                 String   @default("nam")
+  workspaceName        String   @default("ИТ Школа РТК") @map("workspace_name")
+  phone                String?
+  notificationsEnabled Boolean  @default(true) @map("notifications_enabled")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@map("profile_settings")
+}
+
+// ============================================================
+// Звонки
+// ============================================================
+model CallLog {
+  id              String   @id @default(uuid()) @db.Uuid
+  universityId    String?  @map("university_id") @db.Uuid
+  contactPhone    String   @map("contact_phone")
+  contactName     String?  @map("contact_name")
+  direction       String
+  durationSeconds Int      @default(0) @map("duration_seconds")
+  recordingUrl    String?  @map("recording_url")
+  startedAt       DateTime @default(now()) @map("started_at")
+  manager         String
+  integrationId   String?  @map("integration_id") @db.Uuid
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  university University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+
+  @@index([universityId])
+  @@index([startedAt])
+  @@map("calls")
+}
+
+// ============================================================
+// Reminder log
+// Уникальность: (entityType, entityId, userId, minutesBefore).
+// userId в ключе, чтобы напоминание отправлялось КАЖДОМУ получателю,
+// а не блокировалось после первого.
+// ============================================================
+model ReminderLog {
+  id            Int      @id @default(autoincrement())
+  entityType    String   @map("entity_type")
+  entityId      String   @map("entity_id") @db.Uuid
+  userId        String?  @map("user_id") @db.Uuid
+  minutesBefore Int      @map("minutes_before")
+  sentAt        DateTime @default(now()) @map("sent_at")
+
+  @@unique([entityType, entityId, userId, minutesBefore])
+  @@map("reminder_log")
+}
+
+// ============================================================
+// Кастомные поля
+// ============================================================
+model CustomField {
+  id           String   @id @default(uuid()) @db.Uuid
+  key          String   @unique
+  label        String
+  fieldType    String   @map("field_type")
+  options      String[] @default([])
+  defaultValue String?  @map("default_value")
+  helpText     String?  @map("help_text")
+  required     Boolean  @default(false)
+  showInTable  Boolean  @default(false) @map("show_in_table")
+  sortOrder    Int      @default(100) @map("sort_order")
+  entity       String   @default("universities")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  values CustomFieldValue[]
+
+  @@index([entity, sortOrder])
+  @@map("custom_fields")
+}
+
+model CustomFieldValue {
+  id          String    @id @default(uuid()) @db.Uuid
+  fieldId     String    @map("field_id") @db.Uuid
+  entityId    String    @map("entity_id") @db.Uuid
+  valueText   String?   @map("value_text")
+  valueNumber Float?    @map("value_number")
+  valueDate   DateTime? @map("value_date") @db.Date
+  valueBool   Boolean?  @map("value_bool")
+  valueJson   Json?
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  updatedBy   String?   @map("updated_by") @db.Uuid
+
+  field CustomField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([fieldId, entityId])
+  @@index([entityId])
+  @@map("custom_field_values")
+}
+
+// ============================================================
+// Saved views
+// ============================================================
+model SavedView {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String
+  entity    String   @default("universities")
+  filters   Json     @default("{}")
+  sort      Json?
+  color     String?
+  icon      String?
+  pinned    Boolean  @default(false)
+  shared    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, entity])
+  @@map("saved_views")
+}
+
+// ============================================================
+// Inbox
+// ============================================================
+model InboxMessage {
+  id            String   @id @default(uuid()) @db.Uuid
+  integrationId String   @map("integration_id") @db.Uuid
+  channel       String
+  direction     String
+  externalId    String?  @map("external_id")
+  threadId      String?  @map("thread_id")
+  fromAddress   String   @map("from_address")
+  fromName      String?  @map("from_name")
+  toAddress     String?  @map("to_address")
+  subject       String?
+  body          String   @db.Text
+  attachments   Json     @default("[]")
+  universityId  String?  @map("university_id") @db.Uuid
+  interactionId String?  @map("interaction_id") @db.Uuid
+  manager       String?
+  read          Boolean  @default(false)
+  archived      Boolean  @default(false)
+  replied       Boolean  @default(false)
+  starred       Boolean  @default(false)
+  raw           Json     @default("{}")
+  receivedAt    DateTime @default(now()) @map("received_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  university University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+
+  @@index([universityId])
+  @@index([channel, direction])
+  @@index([receivedAt])
+  @@index([read, archived])
+  @@map("inbox_messages")
+}
+
+// ============================================================
+// Webhook logs
+// ============================================================
+model WebhookLog {
+  id            BigInt   @id @default(autoincrement())
+  integrationId String   @map("integration_id") @db.Uuid
+  provider      String
+  method        String
+  headers       Json     @default("{}")
+  body          Json     @default("{}")
+  status        Int      @default(200)
+  error         String?
+  processed     Boolean  @default(false)
+  receivedAt    DateTime @default(now()) @map("received_at")
+
+  @@index([integrationId])
+  @@index([receivedAt])
+  @@map("webhook_logs")
+}
+
+// ============================================================
+// Automation
+// ============================================================
+model AutomationRule {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String
+  description   String?
+  enabled       Boolean   @default(true)
+  entity        String    @default("universities")
+  triggerType   String    @map("trigger_type")
+  triggerConfig Json      @default("{}") @map("trigger_config")
+  conditions    Json      @default("[]")
+  actions       Json      @default("[]")
+  runCount      Int       @default(0) @map("run_count")
+  lastRunAt     DateTime? @map("last_run_at")
+  lastError     String?   @map("last_error")
+  createdBy     String?   @map("created_by") @db.Uuid
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  runs AutomationRun[]
+
+  @@index([enabled, entity])
+  @@map("automation_rules")
+}
+
+model AutomationRun {
+  id             BigInt   @id @default(autoincrement())
+  ruleId         String   @map("rule_id") @db.Uuid
+  entityId       String?  @map("entity_id") @db.Uuid
+  triggerPayload Json?    @map("trigger_payload")
+  actionsResult  Json?    @map("actions_result")
+  success        Boolean  @default(true)
+  error          String?
+  ranAt          DateTime @default(now()) @map("ran_at")
+
+  rule AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId, ranAt])
+  @@map("automation_runs")
+}
+
+// ============================================================
+// Google OAuth
+// ============================================================
+model GoogleOAuthToken {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @unique @map("user_id") @db.Uuid
+  accessToken  String    @map("access_token") @db.Text
+  refreshToken String?   @map("refresh_token") @db.Text
+  expiresAt    DateTime? @map("expires_at")
+  scope        String?
+  email        String?
+  calendarId   String    @default("primary") @map("calendar_id")
+  syncToken    String?   @map("sync_token") @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("google_oauth_tokens")
+}
+
+// ============================================================
+// Idempotency
+// ============================================================
+model IdempotencyKey {
+  id        String   @id @default(uuid()) @db.Uuid
+  key       String   @unique
+  userId    String?  @map("user_id") @db.Uuid
+  endpoint  String
+  status    Int
+  response  Json
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@index([expiresAt])
+  @@map("idempotency_keys")
+}
+
+// ============================================================
+// Версии сущностей
+// ============================================================
+model EntityVersion {
+  id         BigInt   @id @default(autoincrement())
+  entity     String
+  entityId   String   @map("entity_id") @db.Uuid
+  version    Int
+  snapshot   Json
+  changes    Json     @default("{}")
+  authorId   String?  @map("author_id") @db.Uuid
+  authorName String?  @map("author_name")
+  comment    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([entity, entityId, version])
+  @@index([entity, entityId, createdAt])
+  @@map("entity_versions")
+}
+
+// ============================================================
+// Mentions
+// ============================================================
+model Mention {
+  id          BigInt   @id @default(autoincrement())
+  commentId   String   @map("comment_id") @db.Uuid
+  mentionedId String   @map("mentioned_id") @db.Uuid
+  mentionedAt DateTime @default(now()) @map("mentioned_at")
+  read        Boolean  @default(false)
+
+  @@unique([commentId, mentionedId])
+  @@index([mentionedId, read])
+  @@map("mentions")
+}
+
+// ============================================================
+// Excel export
+// ============================================================
+model ExcelExportSession {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  entity     String
+  filename   String
+  rowsCount  Int      @map("rows_count")
+  filterHash String   @map("filter_hash")
+  createdAt  DateTime @default(now()) @map("created_at")
+  expiresAt  DateTime @map("expires_at")
+
+  @@index([userId, createdAt])
+  @@map("excel_export_sessions")
+}
+
+// ============================================================
+// Публичные ссылки на отчёты
+// ============================================================
+model PublicReportLink {
+  id         String    @id @default(uuid()) @db.Uuid
+  token      String    @unique
+  reportType String    @map("report_type")
+  params     Json      @default("{}")
+  createdBy  String    @map("created_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at")
+  expiresAt  DateTime? @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  viewCount  Int       @default(0) @map("view_count")
+  lastViewAt DateTime? @map("last_view_at")
+  password   String?
+
+  @@index([token])
+  @@map("public_report_links")
+}
+
+// ============================================================
+// Зависимости задач
+// ============================================================
+model TaskDependency {
+  id              String   @id @default(uuid()) @db.Uuid
+  taskId          String   @map("task_id") @db.Uuid
+  dependsOnTaskId String?  @map("depends_on_task_id") @db.Uuid
+  type            String   @default("finish_to_start")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([taskId])
+  @@index([dependsOnTaskId])
+  @@map("task_dependencies")
+}
+
+// ============================================================
+// Feature flags
+// ============================================================
+model FeatureFlag {
+  id           String   @id @default(uuid()) @db.Uuid
+  key          String   @unique
+  description  String?
+  enabled      Boolean  @default(false)
+  rollout      Int?
+  config       Json     @default("{}")
+  allowedRoles String[] @default([]) @map("allowed_roles")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([key])
+  @@map("feature_flags")
+}
+
+// ============================================================
+// A/B tests
+// ============================================================
+model AbTest {
+  id          String    @id @default(uuid()) @db.Uuid
+  key         String    @unique
+  description String?
+  variants    Json      @default("[]")
+  enabled     Boolean   @default(false)
+  startAt     DateTime? @map("start_at")
+  endAt       DateTime? @map("end_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("ab_tests")
+}
+
+model AbTestEvent {
+  id        BigInt   @id @default(autoincrement())
+  testKey   String   @map("test_key")
+  variant   String
+  userId    String?  @map("user_id") @db.Uuid
+  eventType String   @map("event_type")
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([testKey, variant, eventType])
+  @@index([userId])
+  @@map("ab_test_events")
+}
+
+// ============================================================
+// Внешние выгрузки (1С, SAP)
+// ============================================================
+model ExternalExportLog {
+  id          BigInt    @id @default(autoincrement())
+  system      String
+  entity      String
+  entityId    String    @map("entity_id") @db.Uuid
+  status      String    @default("pending")
+  externalId  String?   @map("external_id")
+  payload     Json?
+  response    Json?
+  error       String?
+  createdBy   String?   @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
+
+  @@index([system, entity])
+  @@index([status])
+  @@map("external_export_logs")
+}
+
+// ============================================================
+// ЭДО
+// ============================================================
+model EdoDocument {
+  id               String    @id @default(uuid()) @db.Uuid
+  contractId       String    @map("contract_id") @db.Uuid
+  provider         String
+  externalId       String?   @map("external_id")
+  status           String    @default("draft")
+  documentType     String    @default("contract") @map("document_type")
+  boxId            String?   @map("box_id")
+  signedAt         DateTime? @map("signed_at")
+  rejectedAt       DateTime? @map("rejected_at")
+  rejectionComment String?   @map("rejection_comment")
+  rawData          Json      @default("{}") @map("raw_data")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@index([provider, externalId])
+  @@map("edo_documents")
+}
+
+// ============================================================
+// SMS subscriptions
+// ============================================================
+model SmsSubscription {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  phone      String
+  eventTypes String[] @default([]) @map("event_types")
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, phone])
+  @@index([userId, enabled])
+  @@map("sms_subscriptions")
+}
+
+model CustomRole {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique @db.VarChar(64)
+  label       String   @db.VarChar(200)
+  description String?
+  permissions String[] @default([])
+  baseRole    String   @default("nam") @map("base_role") @db.VarChar(20)
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(100) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  profiles Profile[]
+
+  @@index([active, sortOrder])
+  @@map("custom_roles")
+}
+
+// ============================================================
+// Расширение Vendor (файл «Вендоры.xlsx»)
+// ============================================================
+model Vendor {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  site        String?
+  // ── Контакты (для 152-ФЗ — шифруются)
+  contactName    String?
+  contactPhone   String?   // encrypted
+  contactEmail   String?   // encrypted
+  contactMethods String[]  @default([])   // ["Почта", "Чат в ТГ"]
+  notes          String?
+
+  products ItProduct[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// Курсы / потоки / заявки / слушатели (файл «Данные оплат.json»)
+// ============================================================
+model Course {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  streams     CourseStream[]
+  orders      Order[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CourseStream {
+  id        String    @id @default(uuid())
+  courseId  String
+  number    Int
+  startDate DateTime? @db.Date
+  endDate   DateTime? @db.Date
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  orders    Order[]
+  createdAt DateTime  @default(now())
+
+  @@unique([courseId, number])
+  @@index([courseId])
+}
+
+model Learner {
+  id          String  @id @default(uuid())
+  lastName    String
+  firstName   String
+  middleName  String?
+
+  // ── ПД уровня УЗ-1 (шифруются PiiService)
+  phone          String? // encrypted
+  email          String? // encrypted
+  snils          String? // encrypted
+  passportSeries String? // encrypted
+  passportNumber String? // encrypted
+  passportIssuedBy String? // encrypted
+  passportIssuedAt DateTime? @db.Date
+  passportDeptCode String? // encrypted
+  birthDate      DateTime? @db.Date
+  gender         String? // "М" | "Ж"
+
+  regRegion  String?
+  regCity    String?
+  regStreet  String?
+  regHouse   String?
+  regFlat    String?
+  regIndex   String? // encrypted
+
+  educationLevel     String?
+  diplomaProfession  String?
+  diplomaInstitution String?
+  diplomaLastName    String?
+  diplomaNumber      String? // encrypted
+  diplomaSeries      String? // encrypted
+  diplomaRegNumber   String? // encrypted
+  diplomaIssuedAt    DateTime? @db.Date
+
+  // ── Хэши для поиска (без ключа, только SHA-256)
+  phoneHash String? @unique
+  emailHash String? @unique
+
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lastName, firstName])
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  externalId String   @unique   // "ORD-20260313051569-OYJRVN"
+  courseId   String
+  streamId   String?
+  learnerId  String
+
+  status  String   @default("Новая")
+  paidAt  DateTime?
+  amount  Decimal? @db.Decimal(12, 2)
+
+  course   Course        @relation(fields: [courseId], references: [id])
+  stream   CourseStream? @relation(fields: [streamId], references: [id])
+  learner  Learner       @relation(fields: [learnerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([learnerId])
+  @@index([courseId])
+  @@index([streamId])
+}

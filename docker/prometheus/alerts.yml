@@ -1,0 +1,135 @@
+# docker/prometheus/alerts.yml
+groups:
+  - name: crm-alerts
+    interval: 30s
+    rules:
+      # ---------- Backend ----------
+      - alert: BackendDown
+        expr: up{job="crm-backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Backend недоступен'
+          description: 'CRM backend не отвечает более 2 минут'
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m]))
+          /
+          sum(rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Высокий процент 5xx ошибок (> 5%)'
+          description: 'За последние 5 минут доля 5xx-ошибок превышает 5%'
+
+      - alert: SlowRequests
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, path)
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'p95 latency > 2s на {{ $labels.path }}'
+          description: '95-й процентиль времени ответа на {{ $labels.path }} превышает 2 секунды'
+
+      - alert: VerySlowRequests
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, path)
+          ) > 5
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'p99 latency > 5s на {{ $labels.path }}'
+
+      - alert: HighDBErrorRate
+        expr: rate(db_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Много ошибок БД ({{ $labels.code }})'
+          description: 'Более 0.1 ошибок/сек по коду {{ $labels.code }}'
+
+      - alert: HighMemoryUsage
+        expr: |
+          (nodejs_heap_size_used_bytes / nodejs_heap_size_total_bytes) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Heap Node.js > 90%'
+          description: 'Backend использует более 90% доступной heap-памяти'
+
+      - alert: LowRps
+        expr: sum(rate(http_requests_total[5m])) < 0.01
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'RPS почти нулевой'
+          description: 'За последние 15 минут сервер обрабатывает < 0.01 запросов/сек — возможно, все за прокси упало'
+
+      # ---------- PostgreSQL ----------
+      - alert: PostgresDown
+        expr: pg_up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'PostgreSQL недоступен'
+          description: 'postgres-exporter не может подключиться к БД'
+
+      - alert: PostgresTooManyConnections
+        expr: |
+          sum(pg_stat_activity_count) / max(pg_settings_max_connections) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'PostgreSQL: > 80% занятых соединений'
+          description: 'Использовано {{ $value | humanizePercentage }} от max_connections'
+
+      - alert: PostgresLongRunningTransaction
+        expr: pg_stat_activity_max_tx_duration{state="active"} > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Долгая транзакция (> 5 минут)'
+          description: 'Транзакция выполняется {{ $value }} секунд'
+
+      # ---------- Redis ----------
+      - alert: RedisDown
+        expr: redis_up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Redis недоступен'
+
+      - alert: RedisLowHitRate
+        expr: |
+          sum(rate(redis_keyspace_hits_total[5m]))
+          /
+          (sum(rate(redis_keyspace_hits_total[5m])) + sum(rate(redis_keyspace_misses_total[5m]))) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Redis hit rate < 50%'
+          description: 'Кеш работает неэффективно: {{ $value | humanizePercentage }} попаданий'
+
+      - alert: RedisHighMemory
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Redis использует > 90% памяти'

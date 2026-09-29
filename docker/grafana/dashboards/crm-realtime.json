@@ -1,0 +1,56 @@
+{
+  "uid": "crm-realtime",
+  "title": "CRM Realtime & WS",
+  "tags": ["crm", "realtime"],
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "WS broadcasts (rate)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(ws_broadcast_total[1m])) by (type)",
+          "legendFormat": "{{type}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "WS clients connected",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "crm_ws_clients_total", "legendFormat": "всего" },
+        { "expr": "crm_ws_clients_authed", "legendFormat": "авторизованы" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Notifications sent",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "sum(rate(push_notifications_sent_total[5m]))", "legendFormat": "push/s" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Active users (15m)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "crm_active_users", "legendFormat": "активные" }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "version": 1
+}

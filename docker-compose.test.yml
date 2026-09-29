@@ -1,0 +1,20 @@
+services:
+  postgres-test:
+    image: pgvector/pgvector:pg16
+    container_name: crm-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: crm_db_test
+      POSTGRES_USER: crm_user
+      POSTGRES_PASSWORD: crm_pass
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - '5433:5432'
+    tmpfs:
+      # Данные в памяти — тесты быстрые, состояния не остаётся
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U crm_user -d crm_db_test']
+      interval: 3s
+      timeout: 3s
+      retries: 10

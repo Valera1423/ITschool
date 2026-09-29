@@ -1,0 +1,53 @@
+{
+  "name": "it-school-crm",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "CRM ИТ Школы Ростелеком — контроль взаимодействия с вузами по ИТ-направлениям",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "prepare": "husky",
+    "deploy": "./scripts/deploy.sh",
+    "third-party": "node scripts/generate-third-party.mjs",
+    "vapid": "node scripts/generate-vapid.mjs",
+    "health": "./scripts/health-check.sh",
+    "backup": "./scripts/backup-now.sh",
+    "lint": "npm run lint --workspace=backend && npm run lint --workspace=frontend",
+    "test": "npm run test --workspace=backend && npm run test --workspace=frontend",
+    "typecheck": "npm run typecheck --workspace=backend && npm run typecheck --workspace=frontend",
+    "generate:api-types": "openapi-typescript backend/docs/openapi.json -o frontend/src/types/api.d.ts",
+    "generate:api-types:remote": "openapi-typescript http://localhost:4000/api/openapi.json -o frontend/src/types/api.d.ts"
+  },
+  "lint-staged": {
+    "backend/src/**/*.ts": [
+      "npm run lint --workspace=backend -- --fix",
+      "prettier --write"
+    ],
+    "backend/tests/**/*.ts": [
+      "npm run lint --workspace=backend -- --fix",
+      "prettier --write"
+    ],
+    "frontend/src/**/*.{ts,tsx}": [
+      "npm run lint --workspace=frontend -- --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "husky": "^9.1.6",
+    "license-checker": "^25.0.1",
+    "lint-staged": "^15.2.10",
+    "openapi-typescript": "^7.4.1",
+    "prettier": "^3.3.3"
+  }
+}

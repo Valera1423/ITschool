@@ -1,0 +1,146 @@
+﻿{
+  "realm": "it-school",
+  "enabled": true,
+  "displayName": "ИТ Школа Ростелеком",
+  "displayNameHtml": "<b>ИТ Школа</b> Ростелеком",
+  "defaultLocale": "ru",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["ru", "en"],
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 3,
+
+  "passwordPolicy": "length(12) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1) and notUsername and notEmail and passwordHistory(5)",
+
+  "accessTokenLifespan": 7200,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "ssoSessionIdleTimeoutRememberMe": 0,
+  "ssoSessionMaxLifespanRememberMe": 0,
+  "offlineSessionIdleTimeout": 2592000,
+  "offlineSessionMaxLifespanEnabled": false,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+  "actionTokenGeneratedByAdminLifespan": 43200,
+  "actionTokenGeneratedByUserLifespan": 300,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Администратор платформы",
+        "attributes": {
+          "crm.require.2fa": ["true"]
+        }
+      },
+      {
+        "name": "manager",
+        "description": "Руководитель менеджеров",
+        "attributes": {
+          "crm.require.2fa": ["true"]
+        }
+      },
+      {
+        "name": "nam",
+        "description": "Пользователь (НАМ, менеджер по вузам)"
+      }
+    ]
+  },
+
+  "users": [],
+
+  "clients": [
+    {
+      "clientId": "crm-backend",
+      "name": "CRM Backend",
+      "description": "Backend API — service account для admin-операций",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "consentRequired": false,
+      "secret": "${KEYCLOAK_BACKEND_SECRET}",
+      "redirectUris": [
+        "https://${APP_HOSTNAME}/*",
+        "http://localhost:4000/*"
+      ],
+      "webOrigins": [
+        "https://${APP_HOSTNAME}",
+        "http://localhost:4000"
+      ],
+      "attributes": {
+        "access.token.lifespan": "900"
+      }
+    },
+    {
+      "clientId": "crm-frontend",
+      "name": "CRM Frontend",
+      "description": "SPA — публичный клиент с PKCE",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "consentRequired": false,
+      "redirectUris": [
+        "https://${APP_HOSTNAME}/auth/callback",
+        "https://${APP_HOSTNAME}/*",
+        "https://${APP_HOSTNAME}/silent-renew.html",
+        "http://localhost:5173/auth/callback",
+        "http://localhost:5173/silent-renew.html",
+        "http://localhost:5173/*",
+        "http://localhost:4173/auth/callback",
+        "http://localhost:4173/silent-renew.html",
+        "http://localhost:4173/*",
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "https://${APP_HOSTNAME}",
+        "http://localhost:5173",
+        "http://localhost:4173",
+        "http://localhost:8080"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "https://${APP_HOSTNAME}/*##http://localhost:5173/*##http://localhost:4173/*",
+        "access.token.lifespan": "900",
+        "frontchannel.logout.session.required": "true",
+        "backchannel.logout.session.required": "true"
+      }
+    }
+  ],
+
+  "smtpServer": {
+    "host": "${SMTP_HOST}",
+    "port": "${SMTP_PORT}",
+    "from": "${SMTP_USER}",
+    "fromDisplayName": "ИТ Школа РТК",
+    "auth": "true",
+    "user": "${SMTP_USER}",
+    "password": "${SMTP_PASSWORD}",
+    "starttls": "true",
+    "ssl": "false"
+  }
+}

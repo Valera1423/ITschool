@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Нет соединения · ИТ Школа CRM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a; color: #e2e8f0; padding: 24px;
+    }
+    .card { max-width: 420px; text-align: center; }
+    .icon { width: 64px; height: 64px; margin: 0 auto 24px; border-radius: 20px;
+      background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; }
+    h1 { font-size: 22px; margin-bottom: 8px; }
+    p { color: #94a3b8; margin-bottom: 24px; line-height: 1.5; }
+    button {
+      padding: 12px 24px; border-radius: 12px; border: 0; background: #0284c7;
+      color: white; font-weight: 600; cursor: pointer;
+    }
+    button:hover { background: #0369a1; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
+        <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.58 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/>
+      </svg>
+    </div>
+    <h1>Нет соединения</h1>
+    <p>Проверьте интернет. Данные, которые вы уже загрузили, доступны. Изменения в офлайне синхронизируются при возврате.</p>
+    <button onclick="location.reload()">Обновить</button>
+  </div>
+</body>
+</html>

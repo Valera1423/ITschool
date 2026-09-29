@@ -1,0 +1,167 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: crm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: crm_db
+      POSTGRES_USER: crm_user
+      POSTGRES_PASSWORD: crm_pass
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U crm_user -d crm_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  # ============================================================
+  # Redis — кэш, rate-limit, BullMQ
+  # ============================================================
+  redis:
+    image: redis:7-alpine
+    container_name: crm-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  mock-lms:
+    build:
+      context: ./docker/mocks/lms
+      dockerfile: Dockerfile
+    container_name: crm-mock-lms
+    restart: unless-stopped
+    environment:
+      PORT: 4100
+      MOCK_API_KEY: mock-api-key-123
+    ports:
+      - '4100:4100'
+    networks:
+      - crm-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: crm-keycloak
+    restart: unless-stopped
+    command:
+      - start-dev
+      - --import-realm
+      - --http-port=8080
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/crm_db
+      KC_DB_USERNAME: crm_user
+      KC_DB_PASSWORD: crm_pass
+      KC_DB_SCHEMA: keycloak
+
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+
+      KC_HOSTNAME: http://localhost:8080
+      KC_HTTP_ENABLED: 'true'
+      KC_HEALTH_ENABLED: 'true'
+
+      APP_HOSTNAME: localhost
+      SMTP_HOST: smtp.example.com
+      SMTP_PORT: 587
+      SMTP_USER: noreply@example.com
+      SMTP_PASSWORD: dummy
+      KEYCLOAK_BACKEND_SECRET: backend-secret-change-in-prod
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./docker/keycloak:/opt/keycloak/data/import:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm-network
+
+  minio:
+    image: pgsty/silo:latest
+    container_name: crm-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: crm_minio
+      MINIO_ROOT_PASSWORD: minio_pass_dev
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio_data:/data
+    networks:
+      - crm-network
+
+  minio-init:
+    image: pgsty/mc:latest
+    container_name: crm-minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set local http://minio:9000 crm_minio minio_pass_dev;
+      mc mb --ignore-existing local/documents;
+      mc anonymous set download local/documents;
+      exit 0;
+      "
+    networks:
+      - crm-network
+
+  # ============================================================
+  # ClamAV — антивирус для загружаемых файлов (ФСТЭК №117 п.19)
+  # ============================================================
+  # В dev можно не поднимать: в .env backend поставь CLAMAV_ENABLED=false.
+  # Медицинские записи в базе обновляются долго — при первом старте
+  # контейнер ~2 минуты качает сигнатуры. Игнорируется в тестах.
+  clamav:
+    image: clamav/clamav:stable
+    container_name: crm-clamav
+    restart: unless-stopped
+    environment:
+      CLAMAV_NO_FRESHCLAMD: 'false'
+      CLAMAV_NO_MILTERD: 'true'
+      CLAMAV_NO_CLAMD: 'false'
+    volumes:
+      - clamav_data:/var/lib/clamav
+    ports:
+      - '3310:3310'    # dev — чтобы можно было проверить `nc localhost 3310`
+    healthcheck:
+      test: ['CMD-SHELL', 'nc -z localhost 3310 || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 180s
+    networks:
+      - crm-network
+
+networks:
+  crm-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  clamav_data:

@@ -1,0 +1,140 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options: [production, staging]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-push:
+    name: Build & push Docker images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tag
+        id: meta
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=sha-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/backend:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ github.repository }}/backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_URL=https://${{ vars.APP_HOSTNAME }}/api/v1
+            VITE_OIDC_AUTHORITY=https://${{ vars.KEYCLOAK_HOSTNAME }}/realms/it-school
+            VITE_OIDC_CLIENT_ID=crm-frontend
+            VITE_OIDC_REDIRECT_URI=https://${{ vars.APP_HOSTNAME }}/auth/callback
+            VITE_OIDC_POST_LOGOUT_REDIRECT_URI=https://${{ vars.APP_HOSTNAME }}
+            VITE_OIDC_SCOPE=openid profile email roles
+            VITE_MINIO_PUBLIC_URL=https://${{ vars.APP_HOSTNAME }}/storage
+            VITE_VAPID_PUBLIC_KEY=${{ vars.VAPID_PUBLIC_KEY }}
+            VITE_APP_VERSION=${{ steps.meta.outputs.tag }}
+          tags: |
+            ghcr.io/${{ github.repository }}/frontend:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ github.repository }}/frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to server
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy compose files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: 'docker-compose.prod.yml,docker/,scripts/'
+          target: '~/it-school-crm/'
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+          APP_HOSTNAME: ${{ vars.APP_HOSTNAME }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: IMAGE_TAG,GITHUB_TOKEN,GHCR_PULL_TOKEN,APP_HOSTNAME
+          script: |
+            set -e
+            cd ~/it-school-crm
+
+            # Login to GHCR — используем долгоживущий PAT (fallback на GITHUB_TOKEN)
+            PULL_TOKEN="${GHCR_PULL_TOKEN:-$GITHUB_TOKEN}"
+            echo "$PULL_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Pull
+            export IMAGE_TAG
+            docker compose -f docker-compose.prod.yml pull backend frontend
+
+            # Restart (только backend/frontend)
+            docker compose -f docker-compose.prod.yml up -d --no-deps backend frontend
+
+            # Ждём healthcheck
+            sleep 20
+            docker compose -f docker-compose.prod.yml ps
+
+            # Smoke-test
+            curl -fsS "https://$APP_HOSTNAME/health" || exit 1
+
+            # Чистим старые образы
+            docker image prune -af --filter "until=168h"

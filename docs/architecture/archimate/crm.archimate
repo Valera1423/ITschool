@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:archimate="http://www.archimatetool.com/archimate"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 name="ИТ Школа Ростелеком · CRM"
+                 id="model-crm-itschool"
+                 version="1.0.0">
+  <folder name="Strategy" id="f-strategy" type="strategy">
+    <element xsi:type="archimate:Capability" id="cap-rank"
+             name="Ранжирование образовательных программ"/>
+    <element xsi:type="archimate:Capability" id="cap-control"
+             name="Контроль взаимодействия с вузами"/>
+    <element xsi:type="archimate:Capability" id="cap-analytics"
+             name="Объективная аналитика по ИТ-направлениям"/>
+    <element xsi:type="archimate:Capability" id="cap-report"
+             name="Отчётность для руководства"/>
+    <element xsi:type="archimate:Capability" id="cap-integration"
+             name="Интеграция с LMS и внешними системами"/>
+  </folder>
+
+  <folder name="Business" id="f-business" type="business">
+    <element xsi:type="archimate:BusinessActor" id="actor-nam"
+             name="Менеджер по вузам (НАМ)"/>
+    <element xsi:type="archimate:BusinessActor" id="actor-manager"
+             name="Руководитель менеджеров"/>
+    <element xsi:type="archimate:BusinessActor" id="actor-admin"
+             name="Администратор платформы"/>
+    <element xsi:type="archimate:BusinessRole" id="role-nam"
+             name="Менеджер по вузам"/>
+    <element xsi:type="archimate:BusinessRole" id="role-manager"
+             name="Руководитель"/>
+    <element xsi:type="archimate:BusinessRole" id="role-admin"
+             name="Администратор"/>
+
+    <element xsi:type="archimate:BusinessService" id="svc-university"
+             name="Управление карточками вузов"/>
+    <element xsi:type="archimate:BusinessService" id="svc-workflow"
+             name="Ведение воронки взаимодействия"/>
+    <element xsi:type="archimate:BusinessService" id="svc-task"
+             name="Управление задачами"/>
+    <element xsi:type="archimate:BusinessService" id="svc-report"
+             name="Формирование отчётов"/>
+    <element xsi:type="archimate:BusinessService" id="svc-analytics"
+             name="Аналитика"/>
+    <element xsi:type="archimate:BusinessService" id="svc-integration"
+             name="Интеграции с внешними системами"/>
+
+    <element xsi:type="archimate:BusinessProcess" id="proc-lead"
+             name="Первичный контакт с вузом"/>
+    <element xsi:type="archimate:BusinessProcess" id="proc-negotiation"
+             name="Переговоры и согласование"/>
+    <element xsi:type="archimate:BusinessProcess" id="proc-docs"
+             name="Обмен и подписание документов"/>
+    <element xsi:type="archimate:BusinessProcess" id="proc-handover"
+             name="Передача материалов и внедрение"/>
+    <element xsi:type="archimate:BusinessProcess" id="proc-training"
+             name="Обучение преподавателей"/>
+    <element xsi:type="archimate:BusinessProcess" id="proc-control"
+             name="Контроль исполнения"/>
+
+    <element xsi:type="archimate:BusinessObject" id="bo-university"
+             name="Вуз"/>
+    <element xsi:type="archimate:BusinessObject" id="bo-interaction"
+             name="Взаимодействие"/>
+    <element xsi:type="archimate:BusinessObject" id="bo-task"
+             name="Задача"/>
+    <element xsi:type="archimate:BusinessObject" id="bo-contract"
+             name="Договор"/>
+    <element xsi:type="archimate:BusinessObject" id="bo-document"
+             name="Документ"/>
+    <element xsi:type="archimate:BusinessObject" id="bo-contact"
+             name="Контактное лицо"/>
+    <element xsi:type="archimate:BusinessObject" id="bo-workflow"
+             name="Workflow"/>
+    <element xsi:type="archimate:BusinessObject" id="bo-transition"
+             name="Переход статуса"/>
+
+    <element xsi:type="archimate:BusinessEvent" id="event-new-lead"
+             name="Заявка из LMS"/>
+    <element xsi:type="archimate:BusinessEvent" id="event-contract-signed"
+             name="Договор подписан"/>
+    <element xsi:type="archimate:BusinessEvent" id="event-status-changed"
+             name="Статус изменён"/>
+  </folder>
+
+  <folder name="Application" id="f-app" type="application">
+    <element xsi:type="archimate:ApplicationComponent" id="app-frontend"
+             name="Frontend (React SPA)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-backend"
+             name="Backend API (Node.js + Express)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-worker"
+             name="Background Workers (BullMQ)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-ws"
+             name="WebSocket Service"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-postgres"
+             name="PostgreSQL 16 + pgvector"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-redis"
+             name="Redis 7 (cache + queues)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-keycloak"
+             name="Keycloak 26 (OIDC)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-minio"
+             name="MinIO (S3)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-clamav"
+             name="ClamAV (антивирус)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-nginx"
+             name="Nginx (reverse proxy)"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-prometheus"
+             name="Prometheus"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-grafana"
+             name="Grafana"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-loki"
+             name="Loki"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-tempo"
+             name="Tempo"/>
+    <element xsi:type="archimate:ApplicationComponent" id="app-alertmanager"
+             name="Alertmanager"/>
+
+    <element xsi:type="archimate:ApplicationService" id="apps-rest"
+             name="REST API"/>
+    <element xsi:type="archimate:ApplicationService" id="apps-ws-api"
+             name="WebSocket API"/>
+    <element xsi:type="archimate:ApplicationService" id="apps-auth"
+             name="Аутентификация (OIDC)"/>
+    <element xsi:type="archimate:ApplicationService" id="apps-storage"
+             name="Файловое хранилище"/>
+    <element xsi:type="archimate:ApplicationService" id="apps-reports"
+             name="Генерация отчётов"/>
+    <element xsi:type="archimate:ApplicationService" id="apps-ai"
+             name="AI-подсказки (RAG)"/>
+    <element xsi:type="archimate:ApplicationService" id="apps-integration"
+             name="Интеграционный шина"/>
+
+    <element xsi:type="archimate:ApplicationInterface" id="api-rest"
+             name="REST API (HTTP/JSON)"/>
+    <element xsi:type="archimate:ApplicationInterface" id="api-ws"
+             name="WebSocket (ws://)"/>
+    <element xsi:type="archimate:ApplicationInterface" id="api-oidc"
+             name="OIDC / OAuth 2.0"/>
+    <element xsi:type="archimate:ApplicationInterface" id="api-s3"
+             name="S3 API"/>
+    <element xsi:type="archimate:ApplicationInterface" id="api-clam"
+             name="ClamAV INSTREAM"/>
+    <element xsi:type="archimate:ApplicationInterface" id="api-webhook"
+             name="Webhook (HMAC)"/>
+
+    <element xsi:type="archimate:DataObject" id="data-university"
+             name="University"/>
+    <element xsi:type="archimate:DataObject" id="data-interaction"
+             name="Interaction"/>
+    <element xsi:type="archimate:DataObject" id="data-task"
+             name="Task"/>
+    <element xsi:type="archimate:DataObject" id="data-contract"
+             name="Contract"/>
+    <element xsi:type="archimate:DataObject" id="data-document"
+             name="Document"/>
+    <element xsi:type="archimate:DataObject" id="data-audit"
+             name="AuditLog"/>
+    <element xsi:type="archimate:DataObject" id="data-pii"
+             name="Персональные данные (зашифрованы)"/>
+    <element xsi:type="archimate:DataObject" id="data-session"
+             name="UserSession"/>
+  </folder>
+
+  <folder name="Technology" id="f-tech" type="technology">
+    <element xsi:type="archimate:Node" id="node-server"
+             name="Сервер Linux (Ubuntu 22.04)"/>
+    <element xsi:type="archimate:Node" id="node-docker"
+             name="Docker Engine"/>
+    <element xsi:type="archimate:Node" id="node-compose"
+             name="Docker Compose"/>
+
+    <element xsi:type="archimate:SystemSoftware" id="sw-nodejs"
+             name="Node.js 20"/>
+    <element xsi:type="archimate:SystemSoftware" id="sw-nginx"
+             name="Nginx 1.27"/>
+    <element xsi:type="archimate:SystemSoftware" id="sw-postgres"
+             name="PostgreSQL 16"/>
+    <element xsi:type="archimate:SystemSoftware" id="sw-redis"
+             name="Redis 7"/>
+    <element xsi:type="archimate:SystemSoftware" id="sw-keycloak"
+             name="Keycloak 26"/>
+    <element xsi:type="archimate:SystemSoftware" id="sw-minio"
+             name="MinIO"/>
+    <element xsi:type="archimate:SystemSoftware" id="sw-certbot"
+             name="Certbot (Let's Encrypt)"/>
+
+    <element xsi:type="archimate:TechnologyService" id="tech-ssl"
+             name="SSL/TLS-терминация"/>
+    <element xsi:type="archimate:TechnologyService" id="tech-routing"
+             name="HTTP-роутинг и rate limit"/>
+    <element xsi:type="archimate:TechnologyService" id="tech-backup"
+             name="Резервное копирование"/>
+    <element xsi:type="archimate:TechnologyService" id="tech-monitoring"
+             name="Мониторинг и алерты"/>
+    <element xsi:type="archimate:TechnologyService" id="tech-logging"
+             name="Централизованное логирование"/>
+    <element xsi:type="archimate:TechnologyService" id="tech-tracing"
+             name="Распределённый трейсинг"/>
+  </folder>
+
+  <folder name="Motivation" id="f-motivation" type="motivation">
+    <element xsi:type="archimate:Stakeholder" id="stake-mincifry"
+             name="Минцифры РФ"/>
+    <element xsi:type="archimate:Stakeholder" id="stake-rt"
+             name="Ростелеком"/>
+    <element xsi:type="archimate:Stakeholder" id="stake-itschool"
+             name="ИТ Школа РТК"/>
+    <element xsi:type="archimate:Driver" id="drv-digital"
+             name="Цифровая трансформация образования"/>
+    <element xsi:type="archimate:Driver" id="drv-it-personnel"
+             name="Дефицит ИТ-кадров"/>
+    <element xsi:type="archimate:Assessment" id="ass-manual"
+             name="Ручной сбор отчётов 2-3 дня"/>
+    <element xsi:type="archimate:Assessment" id="ass-data-loss"
+             name="Риск потери сделок из-за «зависших» вузов"/>
+    <element xsi:type="archimate:Goal" id="goal-automate"
+             name="Автоматизация взаимодействия с вузами"/>
+    <element xsi:type="archimate:Goal" id="goal-152fz"
+             name="Соответствие 152-ФЗ и ФСТЭК №117"/>
+    <element xsi:type="archimate:Requirement" id="req-50users"
+             name="50 параллельных пользователей"/>
+    <element xsi:type="archimate:Requirement" id="req-latency"
+             name="Время отклика < 1 секунды"/>
+    <element xsi:type="archimate:Requirement" id="req-import"
+             name="Импорт XLS/XLSX"/>
+    <element xsi:type="archimate:Requirement" id="req-export"
+             name="Экспорт XLS/XLSX/PDF/JSON"/>
+    <element xsi:type="archimate:Requirement" id="req-workflow"
+             name="Создание и изменение workflow"/>
+    <element xsi:type="archimate:Requirement" id="req-keycloak"
+             name="Авторизация через Keycloak"/>
+    <element xsi:type="archimate:Requirement" id="req-roles"
+             name="Ролевая модель admin/manager/nam"/>
+    <element xsi:type="archimate:Requirement" id="req-integration"
+             name="Интеграция с LMS и Laravel"/>
+  </folder>
+
+  <folder name="Implementation" id="f-implementation" type="implementation">
+    <element xsi:type="archimate:WorkPackage" id="wp-sprint1"
+             name="Спринт 1: Каталоги и вузы"/>
+    <element xsi:type="archimate:WorkPackage" id="wp-sprint2"
+             name="Спринт 2: Workflow и отчёты"/>
+    <element xsi:type="archimate:WorkPackage" id="wp-sprint3"
+             name="Спринт 3: Интеграции"/>
+    <element xsi:type="archimate:WorkPackage" id="wp-sprint4"
+             name="Спринт 4: Аналитика и безопасность"/>
+    <element xsi:type="archimate:Deliverable" id="del-crm"
+             name="CRM-система"/>
+    <element xsi:type="archimate:Deliverable" id="del-docs"
+             name="Документация"/>
+    <element xsi:type="archimate:Deliverable" id="del-archi"
+             name="Archi-модель"/>
+  </folder>
+
+  <!-- ============================================================
+       СВЯЗИ
+       ============================================================ -->
+
+  <folder name="Relations" id="f-relations" type="relations">
+    <!-- Strategy → Capability -->
+    <element xsi:type="archimate:AssociationRelationship"
+             id="rel-cap-1" source="stake-itschool" target="cap-control"/>
+    <element xsi:type="archimate:AssociationRelationship"
+             id="rel-cap-2" source="stake-mincifry" target="cap-rank"/>
+    <element xsi:type="archimate:AssociationRelationship"
+             id="rel-cap-3" source="goal-automate" target="cap-analytics"/>
+
+    <!-- Business Actor → Role -->
+    <element xsi:type="archimate:AssignmentRelationship"
+             id="rel-ba-1" source="actor-nam" target="role-nam"/>
+    <element xsi:type="archimate:AssignmentRelationship"
+             id="rel-ba-2" source="actor-manager" target="role-manager"/>
+    <element xsi:type="archimate:AssignmentRelationship"
+             id="rel-ba-3" source="actor-admin" target="role-admin"/>
+
+    <!-- Role → Business Service -->
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-role-svc-1" source="role-nam" target="svc-university" accessType="1"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-role-svc-2" source="role-nam" target="svc-workflow" accessType="1"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-role-svc-3" source="role-nam" target="svc-task" accessType="1"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-role-svc-4" source="role-manager" target="svc-report" accessType="1"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-role-svc-5" source="role-manager" target="svc-analytics" accessType="1"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-role-svc-6" source="role-admin" target="svc-integration" accessType="2"/>
+
+    <!-- Business Process → Business Object -->
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-bp-bo-1" source="proc-lead" target="bo-university" accessType="2"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-bp-bo-2" source="proc-negotiation" target="bo-interaction" accessType="2"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-bp-bo-3" source="proc-docs" target="bo-contract" accessType="2"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-bp-bo-4" source="proc-handover" target="bo-document" accessType="2"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-bp-bo-5" source="proc-control" target="bo-workflow" accessType="2"/>
+
+    <!-- Business Service → Business Process -->
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-svc-proc-1" source="proc-lead" target="svc-university"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-svc-proc-2" source="proc-negotiation" target="svc-workflow"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-svc-proc-3" source="proc-docs" target="svc-workflow"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-svc-proc-4" source="proc-handover" target="svc-workflow"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-svc-proc-5" source="proc-training" target="svc-workflow"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-svc-proc-6" source="proc-control" target="svc-report"/>
+
+    <!-- Business Event → Process -->
+    <element xsi:type="archimate:TriggeringRelationship"
+             id="rel-ev-proc-1" source="event-new-lead" target="proc-lead"/>
+    <element xsi:type="archimate:TriggeringRelationship"
+             id="rel-ev-proc-2" source="event-contract-signed" target="proc-handover"/>
+    <element xsi:type="archimate:TriggeringRelationship"
+             id="rel-ev-proc-3" source="event-status-changed" target="proc-control"/>
+
+    <!-- Application Service → Business Service -->
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-apps-svc-1" source="apps-rest" target="svc-university"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-apps-svc-2" source="apps-rest" target="svc-workflow"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-apps-svc-3" source="apps-ws-api" target="svc-workflow"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-apps-svc-4" source="apps-reports" target="svc-report"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-apps-svc-5" source="apps-rest" target="svc-analytics"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-apps-svc-6" source="apps-integration" target="svc-integration"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-apps-svc-7" source="apps-ai" target="svc-workflow"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-apps-svc-8" source="apps-storage" target="svc-university"/>
+
+    <!-- App Component → App Service -->
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-appc-svc-1" source="app-backend" target="apps-rest"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-appc-svc-2" source="app-backend" target="apps-reports"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-appc-svc-3" source="app-ws" target="apps-ws-api"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-appc-svc-4" source="app-keycloak" target="apps-auth"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-appc-svc-5" source="app-minio" target="apps-storage"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-appc-svc-6" source="app-worker" target="apps-integration"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-appc-svc-7" source="app-backend" target="apps-ai"/>
+
+    <!-- App Component → Data -->
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-data-1" source="app-postgres" target="data-university" accessType="1"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-data-2" source="app-postgres" target="data-interaction" accessType="1"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-data-3" source="app-postgres" target="data-task" accessType="1"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-data-4" source="app-postgres" target="data-contract" accessType="1"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-data-5" source="app-postgres" target="data-audit" accessType="2"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-data-6" source="app-postgres" target="data-pii" accessType="1"/>
+    <element xsi:type="archimate:AccessRelationship"
+             id="rel-data-7" source="app-postgres" target="data-session" accessType="1"/>
+
+    <!-- Application Interface -->
+    <element xsi:type="archimate:AssignmentRelationship"
+             id="rel-iface-1" source="api-rest" target="app-backend"/>
+    <element xsi:type="archimate:AssignmentRelationship"
+             id="rel-iface-2" source="api-ws" target="app-ws"/>
+    <element xsi:type="archimate:AssignmentRelationship"
+             id="rel-iface-3" source="api-oidc" target="app-keycloak"/>
+    <element xsi:type="archimate:AssignmentRelationship"
+             id="rel-iface-4" source="api-s3" target="app-minio"/>
+    <element xsi:type="archimate:AssignmentRelationship"
+             id="rel-iface-5" source="api-clam" target="app-clamav"/>
+    <element xsi:type="archimate:AssignmentRelationship"
+             id="rel-iface-6" source="api-webhook" target="app-backend"/>
+
+    <!-- Technology -->
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-tech-1" source="node-docker" target="tech-backup"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-tech-2" source="sw-nginx" target="tech-ssl"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-tech-3" source="sw-nginx" target="tech-routing"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-tech-4" source="app-prometheus" target="tech-monitoring"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-tech-5" source="app-loki" target="tech-logging"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-tech-6" source="app-tempo" target="tech-tracing"/>
+
+    <!-- Technology Service → App Component -->
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-ts-app-1" source="tech-ssl" target="app-nginx"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-ts-app-2" source="tech-routing" target="app-nginx"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-ts-app-3" source="tech-monitoring" target="app-backend"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-ts-app-4" source="tech-logging" target="app-backend"/>
+    <element xsi:type="archimate:ServingRelationship"
+             id="rel-ts-app-5" source="tech-tracing" target="app-backend"/>
+
+    <!-- Requirements -->
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-req-1" source="app-backend" target="req-50users"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-req-2" source="app-backend" target="req-latency"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-req-3" source="app-backend" target="req-import"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-req-4" source="app-backend" target="req-export"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-req-5" source="app-backend" target="req-workflow"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-req-6" source="app-keycloak" target="req-keycloak"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-req-7" source="app-backend" target="req-roles"/>
+    <element xsi:type="archimate:RealizationRelationship"
+             id="rel-req-8" source="app-worker" target="req-integration"/>
+  </folder>
+
+  <folder name="Views" id="f-views" type="diagrams">
+    <!-- Здесь могут быть diagrams, но для краткости опускаем -->
+  </folder>
+</archimate:model>

@@ -1,0 +1,15 @@
+{
+  "name": "mock-lms",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Mock LMS + Laravel CMS для e2e-тестов и демо",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}

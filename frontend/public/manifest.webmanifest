@@ -1,0 +1,46 @@
+{
+  "id": "/",
+  "name": "ИТ Школа Ростелеком · CRM",
+  "short_name": "ИТ Школа",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "theme_color": "#0284c7",
+  "background_color": "#0f172a",
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": ["business", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshots/dashboard-mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Дашборд"
+    },
+    {
+      "src": "/screenshots/universities-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Вузы"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Дашборд", "url": "/?view=dashboard" },
+    { "name": "Вузы", "url": "/?view=universities" },
+    { "name": "Задачи", "url": "/?view=tasks" },
+    { "name": "Календарь", "url": "/?view=calendar" },
+    { "name": "Инбокс", "url": "/?view=inbox" }
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [{ "name": "file", "accept": ["application/pdf", "image/*"] }]
+    }
+  }
+}

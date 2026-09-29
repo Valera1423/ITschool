@@ -1,0 +1,57 @@
+@startuml analytics
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName "DejaVu Sans"
+
+title Аналитические методы
+
+rectangle "Источники данных" {
+  database "universities" as U
+  database "interactions" as I
+  database "tasks" as T
+  database "contracts" as C
+}
+
+rectangle "Методы обработки" {
+  component "ABC-анализ\n(классификация по выручке)" as ABC
+  component "XYZ-анализ\n(CV стабильности касаний)" as XYZ
+  component "RFM-сегментация\n(Recency, Frequency, Monetary)" as RFM
+  component "LTV-оценка\n(пожизненная ценность)" as LTV
+  component "Когортный анализ\n(retention по месяцам)" as Cohort
+  component "Сравнение периодов\n(change %)" as Cmp
+}
+
+rectangle "Кэш Redis" {
+  component "TTL 5 мин\nABC/XYZ, comparison" as CacheShort
+  component "TTL 10 мин\nRFM, LTV, cohorts" as CacheLong
+}
+
+rectangle "Выход" {
+  component "Дашборд руководителя\n(Executive)" as Exec
+  component "Отчёты за период\n(XLSX, XLS, PDF, CSV)" as Reports
+  component "Экспорт диаграмм\n(PNG, PDF)" as Charts
+}
+
+U --> ABC
+U --> XYZ
+U --> RFM
+U --> LTV
+I --> XYZ
+I --> RFM
+C --> ABC
+C --> LTV
+
+ABC --> CacheShort
+XYZ --> CacheShort
+RFM --> CacheLong
+LTV --> CacheLong
+Cohort --> CacheLong
+Cmp --> CacheShort
+
+CacheShort --> Exec
+CacheLong --> Exec
+CacheShort --> Reports
+CacheLong --> Reports
+CacheShort --> Charts
+
+@enduml

@@ -1,0 +1,205 @@
+/* frontend/src/styles/ds/palettes-shared.css */
+
+:root {
+  /* ═══ BASE COLORS ═══ */
+  --atmr-base-neutral:    #585d69;
+  --atmr-base-success:    #00ac43;
+  --atmr-base-warning:    #fda610;
+  --atmr-base-error:      #ff2626;
+  --atmr-base-info:       #1f69ff;
+  --atmr-base-status-02:  #4055e8;
+  --atmr-base-status-03:  #038fde;
+  --atmr-base-status-04:  #1898a9;
+  --atmr-base-status-05:  #ca20d9;
+  --atmr-base-status-06:  #d9206f;
+
+  /* ═══ NEUTRAL ═══ */
+  --atmr-neutral-0:    #fff;
+  --atmr-neutral-10:   #f9f9fa;
+  --atmr-neutral-25:   #f4f4f5;
+  --atmr-neutral-50:   #e8e8ee;
+  --atmr-neutral-100:  #d3d4db;
+  --atmr-neutral-200:  #b5b7c0;
+  --atmr-neutral-300:  #9da1ac;
+  --atmr-neutral-400:  #797e8b;
+  --atmr-neutral-500:  var(--atmr-base-neutral);
+  --atmr-neutral-600:  #434b5a;
+  --atmr-neutral-700:  #323a49;
+  --atmr-neutral-800:  #262e3d;
+  --atmr-neutral-900:  #212938;
+  --atmr-neutral-925:  #1b2332;
+  --atmr-neutral-950:  #151d2c;
+  --atmr-neutral-990:  #101828;
+  --atmr-neutral-1000: #000;
+
+  /* ═══ SUCCESS ═══ */
+  --atmr-success-0:    #fff;
+  --atmr-success-10:   #f7fdf9;
+  --atmr-success-25:   #f2fbf6;
+  --atmr-success-50:   #e6f7ec;
+  --atmr-success-100:  #bfead0;
+  --atmr-success-200:  #80d6a1;
+  --atmr-success-300:  #59c985;
+  --atmr-success-400:  #33bd69;
+  --atmr-success-500:  var(--atmr-base-success);
+  --atmr-success-600:  #009239;
+  --atmr-success-700:  #00782f;
+  --atmr-success-800:  #006728;
+  --atmr-success-900:  #005622;
+  --atmr-success-925:  #004a1d;
+  --atmr-success-950:  #003c17;
+  --atmr-success-990:  #00220d;
+  --atmr-success-1000: #000;
+
+  /* ═══ WARNING ═══ */
+  --atmr-warning-0:    #fff;
+  --atmr-warning-10:   #fffcf8;
+  --atmr-warning-25:   #fffbf3;
+  --atmr-warning-50:   #fff6e7;
+  --atmr-warning-100:  #ffe9c3;
+  --atmr-warning-200:  #fed388;
+  --atmr-warning-300:  #fec564;
+  --atmr-warning-400:  #fdb840;
+  --atmr-warning-500:  var(--atmr-base-warning);
+  --atmr-warning-600:  #d78d0e;
+  --atmr-warning-700:  #b1740b;
+  --atmr-warning-800:  #98640a;
+  --atmr-warning-900:  #7f5308;
+  --atmr-warning-925:  #6d4707;
+  --atmr-warning-950:  #593a06;
+  --atmr-warning-990:  #332103;
+  --atmr-warning-1000: #000;
+
+  /* ═══ ERROR ═══ */
+  --atmr-error-0:    #fff;
+  --atmr-error-10:   #fff8f8;
+  --atmr-error-25:   #fff4f4;
+  --atmr-error-50:   #ffe9e9;
+  --atmr-error-100:  #ffc9c9;
+  --atmr-error-200:  #ff9393;
+  --atmr-error-300:  #ff7272;
+  --atmr-error-400:  #ff5151;
+  --atmr-error-500:  var(--atmr-base-error);
+  --atmr-error-600:  #d92020;
+  --atmr-error-700:  #b31b1b;
+  --atmr-error-800:  #991717;
+  --atmr-error-900:  #801313;
+  --atmr-error-925:  #6e1010;
+  --atmr-error-950:  #590d0d;
+  --atmr-error-990:  #330808;
+  --atmr-error-1000: #000;
+
+  /* ═══ INFO ═══ */
+  --atmr-info-0:    #fff;
+  --atmr-info-10:   #f8fbff;
+  --atmr-info-25:   #f4f8ff;
+  --atmr-info-50:   #e9f0ff;
+  --atmr-info-100:  #c7daff;
+  --atmr-info-200:  #8fb4ff;
+  --atmr-info-300:  #6d9eff;
+  --atmr-info-400:  #4c87ff;
+  --atmr-info-500:  var(--atmr-base-info);
+  --atmr-info-600:  #1a59d9;
+  --atmr-info-700:  #164ab3;
+  --atmr-info-800:  #133f99;
+  --atmr-info-900:  #103580;
+  --atmr-info-925:  #0d2d6e;
+  --atmr-info-950:  #0b2559;
+  --atmr-info-990:  #061533;
+  --atmr-info-1000: #000;
+
+  /* ═══ STATUS-02 ═══ */
+  --atmr-status-02-0:    #fff;
+  --atmr-status-02-10:   #f9fafe;
+  --atmr-status-02-25:   #f5f7fe;
+  --atmr-status-02-50:   #eceefd;
+  --atmr-status-02-100:  #cfd4f9;
+  --atmr-status-02-200:  #a0aaf3;
+  --atmr-status-02-300:  #8391f0;
+  --atmr-status-02-400:  #6677ed;
+  --atmr-status-02-500:  var(--atmr-base-status-02);
+  --atmr-status-02-600:  #3648c5;
+  --atmr-status-02-700:  #2d3ca2;
+  --atmr-status-02-800:  #26338b;
+  --atmr-status-02-900:  #202b74;
+  --atmr-status-02-925:  #1c2564;
+  --atmr-status-02-950:  #161e51;
+  --atmr-status-02-990:  #0d112e;
+  --atmr-status-02-1000: #000;
+
+  /* ═══ STATUS-03 ═══ */
+  --atmr-status-03-0:    #fff;
+  --atmr-status-03-10:   #f7fcfe;
+  --atmr-status-03-25:   #f2f9fd;
+  --atmr-status-03-50:   #e6f4fc;
+  --atmr-status-03-100:  #c0e3f7;
+  --atmr-status-03-200:  #81c7ef;
+  --atmr-status-03-300:  #5bb6ea;
+  --atmr-status-03-400:  #35a5e5;
+  --atmr-status-03-500:  var(--atmr-base-status-03);
+  --atmr-status-03-600:  #037abd;
+  --atmr-status-03-700:  #02649b;
+  --atmr-status-03-800:  #025685;
+  --atmr-status-03-900:  #02486f;
+  --atmr-status-03-925:  #013d5f;
+  --atmr-status-03-950:  #01324e;
+  --atmr-status-03-990:  #011d2c;
+  --atmr-status-03-1000: #000;
+
+  /* ═══ STATUS-04 ═══ */
+  --atmr-status-04-0:    #fff;
+  --atmr-status-04-10:   #f8fcfc;
+  --atmr-status-04-25:   #f3fafb;
+  --atmr-status-04-50:   #e8f5f6;
+  --atmr-status-04-100:  #c5e5ea;
+  --atmr-status-04-200:  #8cccd4;
+  --atmr-status-04-300:  #69bcc7;
+  --atmr-status-04-400:  #46adba;
+  --atmr-status-04-500:  var(--atmr-base-status-04);
+  --atmr-status-04-600:  #148190;
+  --atmr-status-04-700:  #116a76;
+  --atmr-status-04-800:  #0e5b65;
+  --atmr-status-04-900:  #0c4c55;
+  --atmr-status-04-925:  #0a4149;
+  --atmr-status-04-950:  #08353b;
+  --atmr-status-04-990:  #051e22;
+  --atmr-status-04-1000: #000;
+
+  /* ═══ STATUS-05 ═══ */
+  --atmr-status-05-0:    #fff;
+  --atmr-status-05-10:   #fdf8fe;
+  --atmr-status-05-25:   #fcf4fd;
+  --atmr-status-05-50:   #fae9fb;
+  --atmr-status-05-100:  #f2c7f6;
+  --atmr-status-05-200:  #e490ec;
+  --atmr-status-05-300:  #dd6ee6;
+  --atmr-status-05-400:  #d54de1;
+  --atmr-status-05-500:  var(--atmr-base-status-05);
+  --atmr-status-05-600:  #ac1bb8;
+  --atmr-status-05-700:  #8d1698;
+  --atmr-status-05-800:  #791382;
+  --atmr-status-05-900:  #65106d;
+  --atmr-status-05-925:  #570e5d;
+  --atmr-status-05-950:  #470b4c;
+  --atmr-status-05-990:  #28062b;
+  --atmr-status-05-1000: #000;
+
+  /* ═══ STATUS-06 ═══ */
+  --atmr-status-06-0:    #fff;
+  --atmr-status-06-10:   #fef8fb;
+  --atmr-status-06-25:   #fdf4f8;
+  --atmr-status-06-50:   #fbe9f1;
+  --atmr-status-06-100:  #f6c7db;
+  --atmr-status-06-200:  #ec90b7;
+  --atmr-status-06-300:  #e66ea1;
+  --atmr-status-06-400:  #e14d8c;
+  --atmr-status-06-500:  var(--atmr-base-status-06);
+  --atmr-status-06-600:  #b81b5e;
+  --atmr-status-06-700:  #98164e;
+  --atmr-status-06-800:  #821343;
+  --atmr-status-06-900:  #6d1038;
+  --atmr-status-06-925:  #5d0e30;
+  --atmr-status-06-950:  #4c0b27;
+  --atmr-status-06-990:  #2b0616;
+  --atmr-status-06-1000: #000;
+}

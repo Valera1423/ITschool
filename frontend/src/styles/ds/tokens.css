@@ -1,0 +1,134 @@
+/* frontend/src/styles/ds/tokens.css */
+
+/*
+ * Дизайн-токены Атомаро.
+ * Значения — из официальной документации design.rt.ru.
+ *
+ * CSS-переменные с префиксом --atmr-.
+ * Темы (themes.css) переопределяют цвета для light/dark.
+ */
+
+:root {
+  /* ═══ SPACING ═══ */
+  --atmr-spacing-px:   1px;
+  --atmr-spacing-0-5x: 2px;
+  --atmr-spacing-1x:   4px;
+  --atmr-spacing-1-5x: 6px;
+  --atmr-spacing-2x:   8px;
+  --atmr-spacing-3x:   12px;
+  --atmr-spacing-4x:   16px;
+  --atmr-spacing-5x:   20px;
+  --atmr-spacing-6x:   24px;
+  --atmr-spacing-8x:   32px;
+  --atmr-spacing-10x:  40px;
+  --atmr-spacing-12x:  48px;
+  --atmr-spacing-16x:  64px;
+  --atmr-spacing-20x:  80px;
+  --atmr-spacing-24x:  96px;
+  --atmr-spacing-32x:  128px;
+  --atmr-spacing-48x:  192px;
+
+  /* ═══ SIZES ═══ */
+  --atmr-size-2xs:    16px;
+  --atmr-size-xs:     20px;
+  --atmr-size-s:      24px;
+  --atmr-size-m-tag:  28px;
+  --atmr-size-m-chip: 32px;
+  --atmr-size-m:      36px;
+  --atmr-size-l:      48px;
+  --atmr-size-xl:     56px;
+
+  /* ═══ BORDER RADIUS ═══ */
+  --atmr-radius-none: 0;
+  --atmr-radius-xs:   4px;
+  --atmr-radius-s:    6px;
+  --atmr-radius-m:    8px;
+  --atmr-radius-l:    12px;
+  --atmr-radius-xl:   16px;
+  --atmr-radius-2xl:  24px;
+  --atmr-radius-full: 9999px;
+
+  /* ═══ TYPOGRAPHY ═══ */
+  --atmr-font-family-base: 'Rostelecom Basis', 'Inter', -apple-system,
+                           BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Display */
+  --atmr-typography-display-l-size:          48px;
+  --atmr-typography-display-l-line-height:   52px;
+  --atmr-typography-display-l-weight:        500;
+  --atmr-typography-display-l-strong-weight: 700;
+  --atmr-typography-display-m-size:          42px;
+  --atmr-typography-display-m-line-height:   44px;
+  --atmr-typography-display-m-weight:        500;
+  --atmr-typography-display-m-strong-weight: 700;
+  --atmr-typography-display-s-size:          32px;
+  --atmr-typography-display-s-line-height:   44px;
+  --atmr-typography-display-s-weight:        500;
+  --atmr-typography-display-s-strong-weight: 700;
+
+  /* Heading */
+  --atmr-typography-h1-size:        28px;
+  --atmr-typography-h1-line-height: 32px;
+  --atmr-typography-h1-weight:      700;
+  --atmr-typography-h2-size:        22px;
+  --atmr-typography-h2-line-height: 24px;
+  --atmr-typography-h2-weight:      700;
+  --atmr-typography-h3-size:        18px;
+  --atmr-typography-h3-line-height: 20px;
+  --atmr-typography-h3-weight:      700;
+  --atmr-typography-h4-size:        16px;
+  --atmr-typography-h4-line-height: 20px;
+  --atmr-typography-h4-weight:      700;
+  --atmr-typography-h5-size:        14px;
+  --atmr-typography-h5-line-height: 20px;
+  --atmr-typography-h5-weight:      700;
+
+  /* Body */
+  --atmr-typography-body-l-size:        18px;
+  --atmr-typography-body-l-line-height: 26px;
+  --atmr-typography-body-l-weight:      400;
+  --atmr-typography-body-l-strong-weight: 500;
+  --atmr-typography-body-m-size:        16px;
+  --atmr-typography-body-m-line-height: 24px;
+  --atmr-typography-body-m-weight:      400;
+  --atmr-typography-body-m-strong-weight: 500;
+  --atmr-typography-body-s-size:        14px;
+  --atmr-typography-body-s-line-height: 20px;
+  --atmr-typography-body-s-weight:      400;
+  --atmr-typography-body-s-strong-weight: 500;
+
+  /* Description */
+  --atmr-typography-description-l-size:          12px;
+  --atmr-typography-description-l-line-height:   16px;
+  --atmr-typography-description-l-weight:        400;
+  --atmr-typography-description-l-letter-spacing: 0;
+  --atmr-typography-description-l-strong-weight: 500;
+  --atmr-typography-description-m-size:          11px;
+  --atmr-typography-description-m-line-height:   16px;
+  --atmr-typography-description-m-weight:        400;
+  --atmr-typography-description-m-letter-spacing: 0.2px;
+  --atmr-typography-description-m-strong-weight: 500;
+  --atmr-typography-description-s-size:          10px;
+  --atmr-typography-description-s-line-height:   12px;
+  --atmr-typography-description-s-weight:        400;
+  --atmr-typography-description-s-letter-spacing: 0.4px;
+  --atmr-typography-description-s-strong-weight: 500;
+
+  /* ═══ MOTION ═══ */
+  --atmr-motion-duration-fast:   120ms;
+  --atmr-motion-duration-base:   200ms;
+  --atmr-motion-duration-slow:   320ms;
+
+  --atmr-motion-easing-productive-standard: cubic-bezier(0.4, 0, 0.6, 1);
+  --atmr-motion-easing-productive-entrance: cubic-bezier(0, 0, 0.6, 1);
+  --atmr-motion-easing-productive-exit:     cubic-bezier(0.3, 0, 1, 0.9);
+  --atmr-motion-easing-productive-bouncing: cubic-bezier(0.18, 0.89, 0.35, 1.15);
+
+  /* ═══ Z-INDEX ═══ */
+  --atmr-z-level-s:   10;
+  --atmr-z-level-m:   20;
+  --atmr-z-level-l:   30;
+  --atmr-z-level-xl:  50;
+  --atmr-z-level-2xl: 70;
+  --atmr-z-level-3xl: 100;
+}

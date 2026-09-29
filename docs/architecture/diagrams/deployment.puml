@@ -1,0 +1,81 @@
+@startuml deployment
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName "DejaVu Sans"
+
+title Развёртывание: Docker-хост (Linux, 16 сервисов)
+
+node "Хост (Ubuntu 22.04 LTS, ≥ 8 GB RAM, ≥ 4 CPU)" as Host {
+
+  node "Docker network: crm-internal" {
+
+    node "Публичные сервисы" {
+      component "Nginx\n:80, :443" as Nginx
+      component "Certbot\n(автообновление SSL)" as Certbot
+    }
+
+    node "Приложение" {
+      component "Frontend\nnginx:alpine, :80" as FE
+      component "Backend\nNode.js 20, :4000" as BE
+      component "Worker\n(BullMQ, без порта)" as Worker
+    }
+
+    node "Данные" {
+      database "PostgreSQL 16" as PG
+      database "Redis 7" as Redis
+      database "MinIO\n:9000" as MinIO
+      component "ClamAV\n:3310" as AV
+    }
+
+    node "Аутентификация" {
+      component "Keycloak 26\n:8080, :9000" as KC
+    }
+
+    node "Мониторинг" {
+      component "Prometheus" as Prom
+      component "Grafana" as Graf
+      component "Loki + Promtail" as Loki
+      component "Tempo" as Tempo
+      component "Alertmanager" as AM
+      component "Postgres Exporter" as PE
+      component "Redis Exporter" as RE
+    }
+  }
+
+  node "Volumes (persistent)" {
+    folder "postgres_data" as V1
+    folder "keycloak_data" as V2
+    folder "redis_data" as V3
+    folder "minio_data" as V4
+    folder "nginx_logs" as V5
+    folder "prometheus_data" as V6
+    folder "grafana_data" as V7
+    folder "loki_data" as V8
+    folder "tempo_data" as V9
+    folder "clamav_data" as V10
+    folder "alertmanager_data" as V11
+    folder "./backups/*.sql.gz" as Backup
+  }
+}
+
+cloud "Internet" as Net {
+  actor "Сотрудник" as User
+}
+
+User --> Net
+Net --> Nginx
+
+PG -up-> V1
+KC -up-> V2
+Redis -up-> V3
+MinIO -up-> V4
+Nginx -up-> V5
+Prom -up-> V6
+Graf -up-> V7
+Loki -up-> V8
+Tempo -up-> V9
+AV -up-> V10
+AM -up-> V11
+PG ..> Backup : cron 3:00
+
+@enduml

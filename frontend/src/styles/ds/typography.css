@@ -1,0 +1,32 @@
+/* frontend/src/styles/ds/typography.css */
+
+/* Утилитарные классы типографики.
+   Токены --atmr-font-* имеют формат shorthand (font: weight size/line-height family).
+   Каждый класс использует один `font:` — компактнее и быстрее. */
+
+.atmr-display-l        { font: var(--atmr-font-display-l); }
+.atmr-display-l-strong { font: var(--atmr-font-display-l-strong); }
+.atmr-display-m        { font: var(--atmr-font-display-m); }
+.atmr-display-m-strong { font: var(--atmr-font-display-m-strong); }
+.atmr-display-s        { font: var(--atmr-font-display-s); }
+.atmr-display-s-strong { font: var(--atmr-font-display-s-strong); }
+
+.atmr-h1 { font: var(--atmr-font-heading-h1); }
+.atmr-h2 { font: var(--atmr-font-heading-h2); }
+.atmr-h3 { font: var(--atmr-font-heading-h3); }
+.atmr-h4 { font: var(--atmr-font-heading-h4); }
+.atmr-h5 { font: var(--atmr-font-heading-h5); }
+
+.atmr-body-l        { font: var(--atmr-font-body-l); }
+.atmr-body-l-strong { font: var(--atmr-font-body-l-strong); }
+.atmr-body-m        { font: var(--atmr-font-body-m); }
+.atmr-body-m-strong { font: var(--atmr-font-body-m-strong); }
+.atmr-body-s        { font: var(--atmr-font-body-s); }
+.atmr-body-s-strong { font: var(--atmr-font-body-s-strong); }
+
+.atmr-desc-l        { font: var(--atmr-font-description-l); }
+.atmr-desc-l-strong { font: var(--atmr-font-description-l-strong); }
+.atmr-desc-m        { font: var(--atmr-font-description-m); }
+.atmr-desc-m-strong { font: var(--atmr-font-description-m-strong); }
+.atmr-desc-s        { font: var(--atmr-font-description-s); }
+.atmr-desc-s-strong { font: var(--atmr-font-description-s-strong); }

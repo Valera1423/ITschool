@@ -1,0 +1,1318 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm, vector]
+}
+
+model Profile {
+  id                  String             @id @db.Uuid
+  email               String             @unique
+  fullName            String             @map("full_name")
+  role                String             @default("nam") @db.VarChar(20)
+  avatarColor         String             @default("blue") @map("avatar_color")
+  blocked             Boolean            @default(false)
+  totpEnabled         Boolean            @default(false) @map("totp_enabled")
+  keycloakSub         String?            @unique @map("keycloak_sub")
+  lastLoginAt         DateTime?          @map("last_login_at")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+  customRoleId        String?            @map("custom_role_id") @db.Uuid
+  auditLogs           AuditLog[]
+  contracts           Contract[]
+  google_oauth_tokens GoogleOAuthToken?
+  notifications       Notification[]
+  customRole          CustomRole?        @relation(fields: [customRoleId], references: [id])
+  pushSubscriptions   PushSubscription[]
+  preferences         UserPreferences?
+  scopes              UserScope[]
+  sessions            UserSession[]
+
+  @@map("profiles")
+}
+
+model ProfileSettings {
+  id                   String   @id @default(uuid()) @db.Uuid
+  fullName             String   @map("full_name")
+  email                String
+  role                 String   @default("nam")
+  workspaceName        String   @default("ИТ Школа РТК") @map("workspace_name")
+  phone                String?
+  notificationsEnabled Boolean  @default(true) @map("notifications_enabled")
+  created_at           DateTime @default(now())
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@map("profile_settings")
+}
+
+model UserPreferences {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @unique @map("user_id") @db.Uuid
+  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
+  onboardingDismissed Boolean  @default(false) @map("onboarding_dismissed")
+  tourCompleted       Boolean  @default(false) @map("tour_completed")
+  compactMode         Boolean  @default(false) @map("compact_mode")
+  emailNotifications  Boolean  @default(true) @map("email_notifications")
+  pushNotifications   Boolean  @default(true) @map("push_notifications")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  user                Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model UserScope {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  entity     String   @default("universities")
+  filter     Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updated_at DateTime
+  user       Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entity])
+  @@index([entity])
+  @@map("user_scopes")
+}
+
+model UserSession {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  tokenHash     String    @unique @map("token_hash")
+  ip            String?
+  userAgent     String?   @map("user_agent")
+  deviceLabel   String?   @map("device_label")
+  lastActiveAt  DateTime  @default(now()) @map("last_active_at")
+  expiresAt     DateTime  @map("expires_at")
+  revoked       Boolean   @default(false)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  revokedAt     DateTime? @map("revoked_at")
+  revokedReason String?   @map("revoked_reason")
+  user          Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revoked])
+  @@index([expiresAt])
+  @@index([lastActiveAt])
+  @@map("user_sessions")
+}
+
+model CustomRole {
+  id          String    @id @default(uuid()) @db.Uuid
+  code        String    @unique @db.VarChar(64)
+  label       String    @db.VarChar(200)
+  description String?
+  permissions String[]  @default([])
+  baseRole    String    @default("nam") @map("base_role") @db.VarChar(20)
+  active      Boolean   @default(true)
+  sortOrder   Int       @default(100) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  profiles    Profile[]
+
+  @@index([active, sortOrder])
+  @@map("custom_roles")
+}
+
+model Vendor {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  site        String?
+  contactName    String?   @map("contact_name")
+  contactPhone   String?   @map("contact_phone")
+  contactEmail   String?   @map("contact_email")
+  contactMethods String[]  @default([]) @map("contact_methods")
+  notes          String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  products     ItProduct[]
+  universities University[]
+
+  @@map("vendors")
+}
+
+model ItDirection {
+  id           String       @id @default(uuid()) @db.Uuid
+  name         String       @unique
+  code         String?
+  description  String?
+  color        String       @default("sky")
+  sortOrder    Int          @default(100) @map("sort_order")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  universities University[]
+
+  @@map("it_directions")
+}
+
+model ItProduct {
+  id           String       @id @default(uuid()) @db.Uuid
+  name         String       @unique
+  vendorId     String?      @map("vendor_id") @db.Uuid
+  description  String?
+  licenseType  String?      @map("license_type")
+  color        String       @default("sky")
+  sortOrder    Int          @default(100) @map("sort_order")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  vendor       Vendor?      @relation(fields: [vendorId], references: [id])
+  universities University[]
+
+  @@map("it_products")
+}
+
+model Manager {
+  id           String       @id @default(uuid()) @db.Uuid
+  profileId    String?      @map("profile_id") @db.Uuid
+  fullName     String       @unique @map("full_name")
+  email        String?
+  phone        String?
+  position     String?
+  department   String?
+  avatarColor  String       @default("blue") @map("avatar_color")
+  active       Boolean      @default(true)
+  sortOrder    Int          @default(100) @map("sort_order")
+  notes        String?
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  universities University[]
+
+  @@index([active, sortOrder])
+  @@map("managers")
+}
+
+model University {
+  id                  String               @id @default(uuid()) @db.Uuid
+  name                String
+  city                String               @default("Москва")
+  direction           String               @default("Разработка")
+  product             String               @default("Ростелеком DataLab")
+  vendorId            String?              @map("vendor_id") @db.Uuid
+  directionId         String?              @map("direction_id") @db.Uuid
+  productId           String?              @map("product_id") @db.Uuid
+  managerId           String?              @map("manager_id") @db.Uuid
+  contractNumber      String?              @map("contract_number")
+  licenseSigned       Boolean              @default(false) @map("license_signed")
+  licenseExpiresAt    DateTime?            @map("license_expires_at") @db.Date
+  status              String               @default("Новый")
+  handoverStatus      String               @default("Не передан") @map("handover_status")
+  manager             String               @default("Анна Кузнецова")
+  contactName         String?              @map("contact_name")
+  contactEmail        String?              @map("contact_email")
+  contactPhone        String?              @map("contact_phone")
+  telegram            String?
+  whatsapp            String?
+  maxMessenger        String?              @map("max_messenger")
+  source              String               @default("Вручную")
+  notes               String?
+  contractValue       Decimal              @default(0) @map("contract_value") @db.Decimal(14, 2)
+  firstResponseAt     DateTime?            @map("first_response_at")
+  expectedCloseDate   DateTime?            @map("expected_close_date") @db.Date
+  closedAt            DateTime?            @map("closed_at")
+  lossReason          String?              @map("loss_reason")
+  deletedAt           DateTime?            @map("deleted_at")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  callLogs            CallLog[]
+  comments            Comment[]
+  contracts           Contract[]
+  documents           Document[]
+  inboxMessages       InboxMessage[]
+  interactions        Interaction[]
+  tasks               Task[]
+  directionRef        ItDirection?         @relation(fields: [directionId], references: [id])
+  managerRef          Manager?             @relation(fields: [managerId], references: [id])
+  productRef          ItProduct?           @relation(fields: [productId], references: [id])
+  vendor              Vendor?              @relation(fields: [vendorId], references: [id])
+  contacts            UniversityContact[]
+  tags                UniversityTag[]
+  workflowTransitions WorkflowTransition[]
+  workflowLinks       WorkflowUniversity[]
+
+  @@index([deletedAt])
+  @@index([status])
+  @@index([manager])
+  @@map("universities")
+}
+
+model UniversityContact {
+  id           String     @id @default(uuid()) @db.Uuid
+  universityId String     @map("university_id") @db.Uuid
+  fullName     String     @map("full_name")
+  role         String?
+  email        String?
+  phone        String?
+  telegram     String?
+  whatsapp     String?
+  isPrimary    Boolean    @default(false) @map("is_primary")
+  notes        String?
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
+  @@map("university_contacts")
+}
+
+model Tag {
+  id           String          @id @default(uuid()) @db.Uuid
+  name         String          @unique
+  color        String          @default("sky")
+  description  String?
+  createdAt    DateTime        @default(now()) @map("created_at")
+  universities UniversityTag[]
+
+  @@map("tags")
+}
+
+model UniversityTag {
+  universityId String     @map("university_id") @db.Uuid
+  tagId        String     @map("tag_id") @db.Uuid
+  createdAt    DateTime   @default(now()) @map("created_at")
+  tag          Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@id([universityId, tagId])
+  @@index([tagId])
+  @@map("university_tags")
+}
+
+model Interaction {
+  id              String     @id @default(uuid()) @db.Uuid
+  universityId    String     @map("university_id") @db.Uuid
+  type            String     @default("Звонок")
+  title           String
+  details         String?
+  interactionDate DateTime   @default(now()) @map("interaction_date") @db.Date
+  status          String     @default("Запланировано")
+  manager         String     @default("Анна Кузнецова")
+  startTime       String?    @map("start_time")
+  endTime         String?    @map("end_time")
+  allDay          Boolean    @default(false) @map("all_day")
+  meetingUrl      String?    @map("meeting_url")
+  location        String?
+  attendees       Json       @default("[]")
+  reminderMinutes Int?       @map("reminder_minutes")
+  color           String     @default("sky")
+  deletedAt       DateTime?  @map("deleted_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  university      University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([interactionDate])
+  @@index([universityId, interactionDate])
+  @@map("interactions")
+}
+
+model Task {
+  id           String      @id @default(uuid()) @db.Uuid
+  universityId String?     @map("university_id") @db.Uuid
+  title        String
+  description  String?
+  status       String      @default("К выполнению")
+  priority     String      @default("Средний")
+  dueDate      DateTime    @default(now()) @map("due_date") @db.Date
+  reminderAt   DateTime?   @map("reminder_at")
+  assignee     String      @default("Анна Кузнецова")
+  deletedAt    DateTime?   @map("deleted_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  university   University? @relation(fields: [universityId], references: [id])
+
+  @@index([status])
+  @@index([dueDate])
+  @@index([assignee])
+  @@map("tasks")
+}
+
+model TaskDependency {
+  id              String   @id @default(uuid()) @db.Uuid
+  taskId          String   @map("task_id") @db.Uuid
+  dependsOnTaskId String?  @map("depends_on_task_id") @db.Uuid
+  type            String   @default("finish_to_start")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([dependsOnTaskId])
+  @@index([taskId])
+  @@map("task_dependencies")
+}
+
+model Comment {
+  id            String      @id @default(uuid()) @db.Uuid
+  universityId  String?     @map("university_id") @db.Uuid
+  author        String      @default("Анна Кузнецова")
+  body          String
+  deletedAt     DateTime?   @map("deleted_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  attachments   Json        @default("[]")
+  interactionId String?     @map("interaction_id") @db.Uuid
+  taskId        String?     @map("task_id") @db.Uuid
+  updated_at    DateTime
+  university    University? @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
+  @@map("comments")
+}
+
+model Mention {
+  id          BigInt   @id @default(autoincrement())
+  commentId   String   @map("comment_id") @db.Uuid
+  mentionedId String   @map("mentioned_id") @db.Uuid
+  mentionedAt DateTime @default(now()) @map("mentioned_at")
+  read        Boolean  @default(false)
+
+  @@unique([commentId, mentionedId])
+  @@index([mentionedId, read])
+  @@map("mentions")
+}
+
+model Workflow {
+  id                   String                   @id @default(uuid()) @db.Uuid
+  name                 String
+  description          String?
+  status               String                   @default("Активен")
+  runsCount            Int                      @default(0) @map("runs_count")
+  deletedAt            DateTime?                @map("deleted_at")
+  createdAt            DateTime                 @default(now()) @map("created_at")
+  updatedAt            DateTime                 @updatedAt @map("updated_at")
+  isDefault            Boolean                  @default(false) @map("is_default")
+  steps                WorkflowStep[]
+  transitionRules      WorkflowTransitionRule[]
+  workflowUniversities WorkflowUniversity[]
+
+  @@map("workflows")
+}
+
+model WorkflowStep {
+  id                  String                   @id @default(uuid()) @db.Uuid
+  workflowId          String                   @map("workflow_id") @db.Uuid
+  title               String
+  stepOrder           Int                      @default(1) @map("step_order")
+  status              String                   @default("Ожидает")
+  statusCode          String?                  @map("status_code")
+  createdAt           DateTime                 @default(now()) @map("created_at")
+  workflow            Workflow                 @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  transitionRulesFrom WorkflowTransitionRule[] @relation("RuleFromStep")
+  transitionRulesTo   WorkflowTransitionRule[] @relation("RuleToStep")
+  transitions         WorkflowTransition[]
+  currentInUni        WorkflowUniversity[]
+
+  @@index([workflowId, stepOrder])
+  @@map("workflow_steps")
+}
+
+model WorkflowUniversity {
+  id            String        @id @default(uuid()) @db.Uuid
+  workflowId    String        @map("workflow_id") @db.Uuid
+  universityId  String        @map("university_id") @db.Uuid
+  currentStepId String?       @map("current_step_id") @db.Uuid
+  status        String        @default("В работе")
+  startedAt     DateTime      @default(now()) @map("started_at")
+  completedAt   DateTime?     @map("completed_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  currentStep   WorkflowStep? @relation(fields: [currentStepId], references: [id])
+  university    University    @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  workflow      Workflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, universityId])
+  @@index([universityId])
+  @@map("workflow_universities")
+}
+
+model WorkflowTransition {
+  id           String       @id @default(uuid()) @db.Uuid
+  stepId       String       @map("step_id") @db.Uuid
+  universityId String       @map("university_id") @db.Uuid
+  fromStatus   String?      @map("from_status")
+  toStatus     String       @map("to_status")
+  comment      String
+  attachments  Json         @default("[]")
+  actorName    String       @map("actor_name")
+  actorId      String?      @map("actor_id") @db.Uuid
+  createdAt    DateTime     @default(now()) @map("created_at")
+  step         WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  university   University   @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([stepId, createdAt])
+  @@index([universityId, createdAt])
+  @@map("workflow_transitions")
+}
+
+model WorkflowTransitionRule {
+  id              String       @id @default(uuid()) @db.Uuid
+  workflowId      String       @map("workflow_id") @db.Uuid
+  fromStepId      String       @map("from_step_id") @db.Uuid
+  toStepId        String       @map("to_step_id") @db.Uuid
+  condition       Json         @default("{}")
+  requiresComment Boolean      @default(true) @map("requires_comment")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  fromStep        WorkflowStep @relation("RuleFromStep", fields: [fromStepId], references: [id], onDelete: Cascade)
+  toStep          WorkflowStep @relation("RuleToStep", fields: [toStepId], references: [id], onDelete: Cascade)
+  workflow        Workflow     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, fromStepId, toStepId])
+  @@index([fromStepId])
+  @@index([toStepId])
+  @@index([workflowId])
+  @@map("workflow_transition_rules")
+}
+
+model WorkflowStatusCatalog {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  label     String
+  color     String   @default("slate")
+  sortOrder Int      @default(100) @map("sort_order")
+  isFinal   Boolean  @default(false) @map("is_final")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("workflow_status_catalog")
+}
+
+model Contract {
+  id               String             @id @default(uuid()) @db.Uuid
+  universityId     String             @map("university_id") @db.Uuid
+  title            String
+  contractNumber   String?            @map("contract_number")
+  amount           Decimal            @default(0) @db.Decimal(14, 2)
+  currency         String             @default("RUB")
+  status           String             @default("Черновик")
+  currentStep      Int                @default(0) @map("current_step")
+  signedAt         DateTime?          @map("signed_at")
+  expiresAt        DateTime?          @map("expires_at") @db.Date
+  signedDocumentId String?            @map("signed_document_id") @db.Uuid
+  notes            String?
+  createdBy        String?            @map("created_by") @db.Uuid
+  deletedAt        DateTime?          @map("deleted_at")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  approvals        ContractApproval[]
+  versions         ContractVersion[]
+  profiles         Profile?           @relation(fields: [createdBy], references: [id])
+  university       University         @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  edoDocuments     EdoDocument[]
+
+  @@index([universityId])
+  @@index([status])
+  @@map("contracts")
+}
+
+model ContractApproval {
+  id           String    @id @default(uuid()) @db.Uuid
+  contractId   String    @map("contract_id") @db.Uuid
+  stepOrder    Int       @map("step_order")
+  role         String
+  approverName String?   @map("approver_name")
+  approverId   String?   @map("approver_id") @db.Uuid
+  status       String    @default("Ожидает")
+  comment      String?
+  decidedAt    DateTime? @map("decided_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  contract     Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, stepOrder])
+  @@map("contract_approvals")
+}
+
+model ContractVersion {
+  id          String   @id @default(uuid()) @db.Uuid
+  contractId  String   @map("contract_id") @db.Uuid
+  version     Int      @default(1)
+  documentId  String?  @map("document_id") @db.Uuid
+  storagePath String   @map("storage_path")
+  name        String
+  sizeBytes   BigInt   @default(0) @map("size_bytes")
+  uploadedBy  String   @map("uploaded_by")
+  comment     String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  contract    Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, version])
+  @@map("contract_versions")
+}
+
+model EdoDocument {
+  id               String    @id @default(uuid()) @db.Uuid
+  contractId       String    @map("contract_id") @db.Uuid
+  provider         String
+  externalId       String?   @map("external_id")
+  status           String    @default("draft")
+  document_type    String    @default("contract")
+  boxId            String?   @map("box_id")
+  signedAt         DateTime? @map("signed_at")
+  rejectedAt       DateTime? @map("rejected_at")
+  rejectionComment String?   @map("rejection_comment")
+  rawData          Json      @default("{}") @map("raw_data")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updated_at       DateTime
+  contract         Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@index([provider, externalId])
+  @@map("edo_documents")
+}
+
+model Document {
+  id               String     @id @default(uuid()) @db.Uuid
+  universityId     String     @map("university_id") @db.Uuid
+  name             String
+  description      String?
+  category         String     @default("Документ")
+  storagePath      String     @map("storage_path")
+  mimeType         String     @map("mime_type")
+  sizeBytes        BigInt     @default(0) @map("size_bytes")
+  version          Int        @default(1)
+  parentDocumentId String?    @map("parent_document_id") @db.Uuid
+  uploadedBy       String     @default("Пользователь") @map("uploaded_by")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  deletedAt        DateTime?  @map("deleted_at")
+  university       University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
+  @@map("documents")
+}
+
+model Segment {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  entity      String    @default("universities")
+  rules       Json      @default("[]")
+  logic       String    @default("AND")
+  color       String    @default("sky")
+  createdBy   String?   @map("created_by") @db.Uuid
+  shared      Boolean   @default(false)
+  autoRefresh Boolean   @default(true) @map("auto_refresh")
+  lastCount   Int       @default(0) @map("last_count")
+  lastRunAt   DateTime? @map("last_run_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("segments")
+}
+
+model SavedView {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String
+  entity    String   @default("universities")
+  filters   Json     @default("{}")
+  sort      Json?
+  color     String?
+  icon      String?
+  pinned    Boolean  @default(false)
+  shared    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, entity])
+  @@map("saved_views")
+}
+
+model Dashboard {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  name        String
+  description String?
+  isDefault   Boolean  @default(false) @map("is_default")
+  shared      Boolean  @default(false)
+  layout      Json     @default("[]")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("dashboards")
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  type      String
+  title     String
+  body      String?
+  entity    String?
+  entityId  String?  @map("entity_id") @db.Uuid
+  actionUrl String?  @map("action_url")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      Profile? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model SmsSubscription {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  phone      String
+  eventTypes String[] @default([]) @map("event_types")
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, phone])
+  @@index([userId, enabled])
+  @@map("sms_subscriptions")
+}
+
+model InboxMessage {
+  id            String      @id @default(uuid()) @db.Uuid
+  integrationId String      @map("integration_id") @db.Uuid
+  channel       String
+  direction     String
+  externalId    String?     @map("external_id")
+  threadId      String?     @map("thread_id")
+  fromAddress   String      @map("from_address")
+  fromName      String?     @map("from_name")
+  toAddress     String?     @map("to_address")
+  subject       String?
+  body          String
+  attachments   Json        @default("[]")
+  universityId  String?     @map("university_id") @db.Uuid
+  interactionId String?     @map("interaction_id") @db.Uuid
+  manager       String?
+  read          Boolean     @default(false)
+  archived      Boolean     @default(false)
+  replied       Boolean     @default(false)
+  starred       Boolean     @default(false)
+  raw           Json        @default("{}")
+  receivedAt    DateTime    @default(now()) @map("received_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  university    University? @relation(fields: [universityId], references: [id])
+
+  @@index([universityId])
+  @@index([receivedAt])
+  @@index([channel, direction])
+  @@index([read, archived])
+  @@map("inbox_messages")
+}
+
+model CallLog {
+  id              String      @id @default(uuid()) @db.Uuid
+  universityId    String?     @map("university_id") @db.Uuid
+  contactPhone    String      @map("contact_phone")
+  contactName     String?     @map("contact_name")
+  direction       String
+  durationSeconds Int         @default(0) @map("duration_seconds")
+  recordingUrl    String?     @map("recording_url")
+  startedAt       DateTime    @default(now()) @map("started_at")
+  manager         String
+  integrationId   String?     @map("integration_id") @db.Uuid
+  notes           String?
+  createdAt       DateTime    @default(now()) @map("created_at")
+  university      University? @relation(fields: [universityId], references: [id])
+
+  @@index([universityId])
+  @@index([startedAt])
+  @@map("calls")
+}
+
+model Integration {
+  id             String                @id @default(uuid()) @db.Uuid
+  name           String
+  type           String                @default("custom_api")
+  config         Json                  @default("{}")
+  status         String                @default("Активна")
+  lastCheckAt    DateTime?             @map("last_check_at")
+  lastError      String?               @map("last_error")
+  lastSyncAt     DateTime?             @map("last_sync_at")
+  lastSyncStatus String?               @map("last_sync_status")
+  lastSyncCount  Int                   @default(0) @map("last_sync_count")
+  syncSchedule   String                @default("0 */2 * * *") @map("sync_schedule")
+  autoSync       Boolean               @default(false) @map("auto_sync")
+  deletedAt      DateTime?             @map("deleted_at")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @updatedAt @map("updated_at")
+  endpoints      IntegrationEndpoint[]
+  syncLogs       IntegrationSyncLog[]
+
+  @@map("integrations")
+}
+
+model IntegrationEndpoint {
+  id                    String                    @id @default(uuid()) @db.Uuid
+  integrationId         String                    @map("integration_id") @db.Uuid
+  name                  String
+  path                  String
+  method                String                    @default("GET")
+  entity                String?
+  enabled               Boolean                   @default(true)
+  sortOrder             Int                       @default(100) @map("sort_order")
+  createdAt             DateTime                  @default(now()) @map("created_at")
+  updatedAt             DateTime                  @updatedAt @map("updated_at")
+  integration           Integration               @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  mappings              IntegrationFieldMapping[]
+  integration_sync_logs IntegrationSyncLog[]
+
+  @@index([integrationId, sortOrder])
+  @@map("integration_endpoints")
+}
+
+model IntegrationFieldMapping {
+  id           String              @id @default(uuid()) @db.Uuid
+  endpointId   String              @map("endpoint_id") @db.Uuid
+  sourceField  String              @map("source_field")
+  targetField  String              @map("target_field")
+  transform    String              @default("string")
+  transformArg String?             @map("transform_arg")
+  required     Boolean             @default(false)
+  defaultValue String?             @map("default_value")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  endpoint     IntegrationEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId])
+  @@map("integration_field_mappings")
+}
+
+model IntegrationSyncLog {
+  id                    BigInt               @id @default(autoincrement())
+  integrationId         String               @map("integration_id") @db.Uuid
+  endpointId            String?              @map("endpoint_id") @db.Uuid
+  trigger               String               @default("manual")
+  startedAt             DateTime             @default(now()) @map("started_at")
+  finishedAt            DateTime?            @map("finished_at")
+  durationMs            Int?                 @map("duration_ms")
+  status                String               @default("running")
+  recordsFetched        Int                  @default(0) @map("records_fetched")
+  recordsCreated        Int                  @default(0) @map("records_created")
+  recordsUpdated        Int                  @default(0) @map("records_updated")
+  recordsSkipped        Int                  @default(0) @map("records_skipped")
+  recordsFailed         Int                  @default(0) @map("records_failed")
+  errorMessage          String?              @map("error_message")
+  requestUrl            String?              @map("request_url")
+  responseSample        Json?                @map("response_sample")
+  errors                Json                 @default("[]")
+  actor                 String?
+  integration_endpoints IntegrationEndpoint? @relation(fields: [endpointId], references: [id])
+  integration           Integration          @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([integrationId, startedAt])
+  @@index([status, startedAt])
+  @@map("integration_sync_logs")
+}
+
+model WebhookLog {
+  id            BigInt   @id @default(autoincrement())
+  integrationId String   @map("integration_id") @db.Uuid
+  provider      String
+  method        String
+  headers       Json     @default("{}")
+  body          Json     @default("{}")
+  status        Int      @default(200)
+  error         String?
+  processed     Boolean  @default(false)
+  received_at   DateTime @default(now())
+
+  @@index([integrationId])
+  @@index([received_at])
+  @@map("webhook_logs")
+}
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  userEmail String?  @map("user_email")
+  entity    String
+  entityId  String?  @map("entity_id") @db.Uuid
+  action    String
+  before    Json?
+  after     Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  user      Profile? @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_log")
+}
+
+model SecurityEvent {
+  id        Int      @id @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  email     String?
+  eventType String   @map("event_type")
+  severity  String   @default("info")
+  ip        String?
+  userAgent String?  @map("user_agent")
+  details   Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([severity])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("security_events")
+}
+
+model PdConsent {
+  id              String    @id @default(uuid()) @db.Uuid
+  subjectType     String    @map("subject_type")
+  subjectId       String?   @map("subject_id") @db.Uuid
+  subjectEmail    String    @map("subject_email")
+  subjectName     String?   @map("subject_name")
+  consentType     String    @default("pd_processing") @map("consent_type")
+  granted         Boolean   @default(true)
+  grantedAt       DateTime  @default(now()) @map("granted_at")
+  revokedAt       DateTime? @map("revoked_at")
+  documentVersion String?   @map("document_version")
+  source          String
+  ip              String?
+  notes           String?
+  createdBy       String?   @map("created_by") @db.Uuid
+
+  @@index([subjectEmail])
+  @@index([granted])
+  @@map("pd_consents")
+}
+
+model PiiAccessLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  userEmail String?  @map("user_email")
+  subjectId String?  @map("subject_id") @db.Uuid
+  entity    String   @default("universities")
+  fields    String[] @default([])
+  purpose   String   @default("view")
+  ip        String?
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([subjectId, createdAt])
+  @@index([userId, createdAt])
+  @@map("pii_access_log")
+}
+
+model IpWhitelistEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  cidr      String   @unique
+  label     String?
+  enabled   Boolean  @default(true)
+  createdBy String   @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("ip_whitelist")
+}
+
+model KbCategory {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String      @unique
+  description String?
+  icon        String      @default("BookOpen")
+  color       String      @default("sky")
+  sortOrder   Int         @default(100) @map("sort_order")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  articles    KbArticle[]
+
+  @@map("kb_categories")
+}
+
+model KbArticle {
+  id              String       @id @default(uuid()) @db.Uuid
+  categoryId      String?      @map("category_id") @db.Uuid
+  title           String
+  slug            String       @unique
+  excerpt         String?
+  content         String       @default("")
+  tags            String[]     @default([])
+  status          String       @default("published")
+  pinned          Boolean      @default(false)
+  views           Int          @default(0)
+  helpfulCount    Int          @default(0) @map("helpful_count")
+  notHelpfulCount Int          @default(0) @map("not_helpful_count")
+  authorId        String?      @map("author_id") @db.Uuid
+  authorName      String?      @map("author_name")
+  deletedAt       DateTime?    @map("deleted_at")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  category        KbCategory?  @relation(fields: [categoryId], references: [id])
+  feedback        KbFeedback[]
+
+  @@index([categoryId])
+  @@map("kb_articles")
+}
+
+model KbFeedback {
+  id        BigInt    @id @default(autoincrement())
+  articleId String    @map("article_id") @db.Uuid
+  userId    String?   @map("user_id") @db.Uuid
+  helpful   Boolean
+  comment   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  article   KbArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("kb_feedback")
+}
+
+model OnboardingStep {
+  id             String   @id @default(uuid()) @db.Uuid
+  stepKey        String   @unique @map("step_key")
+  title          String
+  description    String?
+  targetSelector String?  @map("target_selector")
+  position       String   @default("bottom")
+  sortOrder      Int      @default(100) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("onboarding_steps")
+}
+
+model OnboardingProgress {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  stepKey     String   @map("step_key")
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  @@unique([userId, stepKey])
+  @@map("onboarding_progress")
+}
+
+model CustomField {
+  id           String             @id @default(uuid()) @db.Uuid
+  key          String             @unique
+  label        String
+  fieldType    String             @map("field_type")
+  options      String[]           @default([])
+  defaultValue String?            @map("default_value")
+  helpText     String?            @map("help_text")
+  required     Boolean            @default(false)
+  showInTable  Boolean            @default(false) @map("show_in_table")
+  sortOrder    Int                @default(100) @map("sort_order")
+  entity       String             @default("universities")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  values       CustomFieldValue[]
+
+  @@index([entity, sortOrder])
+  @@map("custom_fields")
+}
+
+model CustomFieldValue {
+  id          String      @id @default(uuid()) @db.Uuid
+  fieldId     String      @map("field_id") @db.Uuid
+  entityId    String      @map("entity_id") @db.Uuid
+  valueText   String?     @map("value_text")
+  valueNumber Float?      @map("value_number")
+  valueDate   DateTime?   @map("value_date") @db.Date
+  valueBool   Boolean?    @map("value_bool")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  updatedBy   String?     @map("updated_by") @db.Uuid
+  valueJson   Json?
+  field       CustomField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([fieldId, entityId])
+  @@index([entityId])
+  @@map("custom_field_values")
+}
+
+model FeatureFlag {
+  id           String   @id @default(uuid()) @db.Uuid
+  key          String   @unique
+  description  String?
+  enabled      Boolean  @default(false)
+  rollout      Int?
+  config       Json     @default("{}")
+  allowedRoles String[] @default([]) @map("allowed_roles")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([key])
+  @@map("feature_flags")
+}
+
+model AbTest {
+  id          String    @id @default(uuid()) @db.Uuid
+  key         String    @unique
+  description String?
+  variants    Json      @default("[]")
+  enabled     Boolean   @default(false)
+  startAt     DateTime? @map("start_at")
+  endAt       DateTime? @map("end_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("ab_tests")
+}
+
+model AbTestEvent {
+  id        BigInt   @id @default(autoincrement())
+  testKey   String   @map("test_key")
+  variant   String
+  userId    String?  @map("user_id") @db.Uuid
+  eventType String   @map("event_type")
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([testKey, variant, eventType])
+  @@index([userId])
+  @@map("ab_test_events")
+}
+
+model AutomationRule {
+  id            String          @id @default(uuid()) @db.Uuid
+  name          String
+  description   String?
+  enabled       Boolean         @default(true)
+  entity        String          @default("universities")
+  triggerType   String          @map("trigger_type")
+  triggerConfig Json            @default("{}") @map("trigger_config")
+  conditions    Json            @default("[]")
+  actions       Json            @default("[]")
+  runCount      Int             @default(0) @map("run_count")
+  lastRunAt     DateTime?       @map("last_run_at")
+  lastError     String?         @map("last_error")
+  createdBy     String?         @map("created_by") @db.Uuid
+  deletedAt     DateTime?       @map("deleted_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  runs          AutomationRun[]
+
+  @@index([enabled, entity])
+  @@map("automation_rules")
+}
+
+model AutomationRun {
+  id             BigInt         @id @default(autoincrement())
+  ruleId         String         @map("rule_id") @db.Uuid
+  entityId       String?        @map("entity_id") @db.Uuid
+  triggerPayload Json?          @map("trigger_payload")
+  actionsResult  Json?          @map("actions_result")
+  success        Boolean        @default(true)
+  error          String?
+  ranAt          DateTime       @default(now()) @map("ran_at")
+  rule           AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId, ranAt])
+  @@map("automation_runs")
+}
+
+model EntityVersion {
+  id         BigInt   @id @default(autoincrement())
+  entity     String
+  entityId   String   @map("entity_id") @db.Uuid
+  version    Int
+  snapshot   Json
+  changes    Json     @default("{}")
+  authorId   String?  @map("author_id") @db.Uuid
+  authorName String?  @map("author_name")
+  comment    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([entity, entityId, version])
+  @@index([entity, entityId, createdAt])
+  @@map("entity_versions")
+}
+
+model IdempotencyKey {
+  id        String   @id @db.Uuid
+  key       String   @unique
+  userId    String?  @map("user_id") @db.Uuid
+  endpoint  String
+  status    Int
+  response  Json
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@index([expiresAt])
+  @@map("idempotency_keys")
+}
+
+model ExcelExportSession {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  entity     String
+  filename   String
+  rowsCount  Int      @map("rows_count")
+  filterHash String   @map("filter_hash")
+  createdAt  DateTime @default(now()) @map("created_at")
+  expiresAt  DateTime @map("expires_at")
+
+  @@index([userId, createdAt])
+  @@map("excel_export_sessions")
+}
+
+model ExternalExportLog {
+  id          BigInt    @id @default(autoincrement())
+  system      String
+  entity      String
+  entityId    String    @map("entity_id") @db.Uuid
+  status      String    @default("pending")
+  externalId  String?   @map("external_id")
+  payload     Json?
+  response    Json?
+  error       String?
+  createdBy   String?   @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
+
+  @@index([system, entity])
+  @@index([status])
+  @@map("external_export_logs")
+}
+
+model PublicReportLink {
+  id         String    @id @default(uuid()) @db.Uuid
+  token      String    @unique
+  reportType String    @map("report_type")
+  params     Json      @default("{}")
+  createdBy  String    @map("created_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at")
+  expiresAt  DateTime? @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  viewCount  Int       @default(0) @map("view_count")
+  lastViewAt DateTime? @map("last_view_at")
+  password   String?
+
+  @@index([token])
+  @@map("public_report_links")
+}
+
+model GoogleOAuthToken {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @unique @map("user_id") @db.Uuid
+  accessToken  String    @map("access_token")
+  refreshToken String?   @map("refresh_token")
+  expiresAt    DateTime? @map("expires_at")
+  scope        String?
+  email        String?
+  calendarId   String    @default("primary") @map("calendar_id")
+  syncToken    String?   @map("sync_token")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  profiles     Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("google_oauth_tokens")
+}
+
+model ReminderLog {
+  id            Int      @id @default(autoincrement())
+  entityType    String   @map("entity_type")
+  entityId      String   @map("entity_id") @db.Uuid
+  userId        String?  @map("user_id") @db.Uuid
+  minutesBefore Int      @map("minutes_before")
+  sent_at       DateTime @default(now())
+
+  @@unique([entityType, entityId, userId, minutesBefore])
+  @@map("reminder_log")
+}
+
+// ============================================================
+// СЛУШАТЕЛИ / КУРСЫ / ЗАЯВКИ
+// ============================================================
+
+model Course {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  streams CourseStream[]
+  orders  Order[]
+
+  @@map("courses")
+}
+
+model CourseStream {
+  id        String    @id @default(uuid()) @db.Uuid
+  courseId  String    @map("course_id") @db.Uuid
+  number    Int
+  startDate DateTime? @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  course Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@unique([courseId, number])
+  @@map("course_streams")
+}
+
+model Learner {
+  id         String  @id @default(uuid()) @db.Uuid
+  lastName   String  @map("last_name")
+  firstName  String  @map("first_name")
+  middleName String? @map("middle_name")
+
+  phone            String?   @map("phone")
+  email            String?   @map("email")
+  snils            String?   @map("snils")
+  passportSeries   String?   @map("passport_series")
+  passportNumber   String?   @map("passport_number")
+  passportIssuedBy String?   @map("passport_issued_by")
+  passportIssuedAt DateTime? @map("passport_issued_at") @db.Date
+  passportDeptCode String?   @map("passport_dept_code")
+  birthDate        DateTime? @map("birth_date") @db.Date
+  gender           String?
+
+  regRegion String? @map("reg_region")
+  regCity   String? @map("reg_city")
+  regStreet String? @map("reg_street")
+  regHouse  String? @map("reg_house")
+  regFlat   String? @map("reg_flat")
+  regIndex  String? @map("reg_index")
+
+  educationLevel     String?   @map("education_level")
+  diplomaProfession  String?   @map("diploma_profession")
+  diplomaInstitution String?   @map("diploma_institution")
+  diplomaLastName    String?   @map("diploma_last_name")
+  diplomaNumber      String?   @map("diploma_number")
+  diplomaSeries      String?   @map("diploma_series")
+  diplomaRegNumber   String?   @map("diploma_reg_number")
+  diplomaIssuedAt    DateTime? @map("diploma_issued_at") @db.Date
+
+  phoneHash String? @unique @map("phone_hash")
+  emailHash String? @unique @map("email_hash")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  orders Order[]
+
+  @@index([lastName, firstName])
+  @@map("learners")
+}
+
+model Order {
+  id         String  @id @default(uuid()) @db.Uuid
+  externalId String  @unique @map("external_id")
+  courseId   String  @map("course_id") @db.Uuid
+  streamId   String? @map("stream_id") @db.Uuid
+  learnerId  String  @map("learner_id") @db.Uuid
+
+  status String    @default("Новая")
+  paidAt DateTime? @map("paid_at")
+  amount Decimal?  @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  course  Course        @relation(fields: [courseId], references: [id])
+  stream  CourseStream? @relation(fields: [streamId], references: [id])
+  learner Learner       @relation(fields: [learnerId], references: [id])
+
+  @@index([learnerId])
+  @@index([courseId])
+  @@index([streamId])
+  @@map("orders")
+}

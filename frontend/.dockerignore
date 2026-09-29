@@ -1,0 +1,14 @@
+node_modules
+dist
+storybook-static
+coverage
+.vscode
+.idea
+.git
+.gitignore
+*.log
+*.md
+.env
+.env.*
+!.env.example
+tests

@@ -1,0 +1,140 @@
+/* frontend/src/styles/ds/primitives.css */
+
+:root {
+  /* ═══ SPACING ═══ */
+  --atmr-spacing-none:  0px;
+  --atmr-spacing-base:  16px;
+  --atmr-spacing-px:    1px;
+  --atmr-spacing-0-5x:  2px;
+  --atmr-spacing-1x:    4px;
+  --atmr-spacing-1-5x:  6px;
+  --atmr-spacing-2x:    8px;
+  --atmr-spacing-3x:    12px;
+  --atmr-spacing-4x:    16px;
+  --atmr-spacing-5x:    20px;
+  --atmr-spacing-6x:    24px;
+  --atmr-spacing-8x:    32px;
+  --atmr-spacing-10x:   40px;
+  --atmr-spacing-12x:   48px;
+  --atmr-spacing-16x:   64px;
+  --atmr-spacing-20x:   80px;
+  --atmr-spacing-24x:   96px;
+  --atmr-spacing-32x:   128px;
+  --atmr-spacing-48x:   192px;
+
+  /* ═══ SIZES ═══ */
+  --atmr-size-base:    16px;
+  --atmr-size-6xs:     4px;
+  --atmr-size-5xs:     6px;
+  --atmr-size-4xs:     8px;
+  --atmr-size-3xs:     12px;
+  --atmr-size-2xs:     16px;
+  --atmr-size-xs:      20px;
+  --atmr-size-s:       24px;
+  --atmr-size-m-tag:   28px;
+  --atmr-size-s-chip:  32px;
+  --atmr-size-m:       36px;
+  --atmr-size-m-chip:  40px;
+  --atmr-size-l:       48px;
+  --atmr-size-xl:      56px;
+
+  /* ═══ BORDER RADIUS ═══ */
+  --atmr-border-radius-none:  0px;
+  --atmr-border-radius-2xs:   2px;
+  --atmr-border-radius-xs:    4px;
+  --atmr-border-radius-s:     6px;
+  --atmr-border-radius-base:  8px;
+  --atmr-border-radius-m:     8px;
+  --atmr-border-radius-l:     12px;
+  --atmr-border-radius-xl:    16px;
+  --atmr-border-radius-2xl:   32px;
+  --atmr-border-radius-full:  9999px;
+  --atmr-border-radius-controls: 3px;
+  --atmr-border-radius-inputs:   var(--atmr-border-radius-m);
+  --atmr-border-radius-buttons:  var(--atmr-border-radius-m);
+
+  /* ═══ BORDER WIDTH ═══ */
+  --atmr-border-width-none:     0px;
+  --atmr-border-width-s:        1px;
+  --atmr-border-width-m:        2px;
+  --atmr-border-width-l:        4px;
+  --atmr-border-width-inputs:   var(--atmr-border-width-m);
+  --atmr-border-width-buttons:  var(--atmr-border-width-m);
+  --atmr-border-width-controls: var(--atmr-border-width-m);
+  --atmr-border-width-dividers: var(--atmr-border-width-s);
+
+  /* ═══ Z-INDEX ═══ */
+  --atmr-z-index-hide:     -1;
+  --atmr-z-index-default:  0;
+  --atmr-z-index-dropdown: 1000;
+  --atmr-z-index-sticky:   1100;
+  --atmr-z-index-fab:      1200;
+  --atmr-z-index-overlay:  1300;
+  --atmr-z-index-loader:   1400;
+  --atmr-z-index-modal:    1500;
+  --atmr-z-index-toast:    1600;
+  --atmr-z-index-popover:  1700;
+  --atmr-z-index-tooltip:  1800;
+
+  /* ═══ BREAKPOINTS ═══ */
+  --atmr-breakpoint-2xs: 0;
+  --atmr-breakpoint-xs:  480;
+  --atmr-breakpoint-s:   768;
+  --atmr-breakpoint-m:   1024;
+  --atmr-breakpoint-l:   1280;
+  --atmr-breakpoint-xl:  1600;
+
+  /* ═══ MOTION: DURATIONS ═══ */
+  --atmr-motion-duration-2xs: 100ms;
+  --atmr-motion-duration-xs:  150ms;
+  --atmr-motion-duration-s:   200ms;
+  --atmr-motion-duration-m:   300ms;
+  --atmr-motion-duration-l:   600ms;
+  --atmr-motion-duration-xl:  1200ms;
+
+  /* ═══ MOTION: EASING ═══ */
+  --atmr-motion-easing-linear:              cubic-bezier(0, 0, 1, 1);
+  --atmr-motion-easing-productive-standard: cubic-bezier(0.4, 0, 0.6, 1);
+  --atmr-motion-easing-productive-entrance: cubic-bezier(0, 0, 0.6, 1);
+  --atmr-motion-easing-productive-exit:     cubic-bezier(0.3, 0, 1, 0.9);
+  --atmr-motion-easing-productive-bouncing: cubic-bezier(0.18, 0.89, 0.35, 1.15);
+  --atmr-motion-easing-expressive-standard: cubic-bezier(0.8, 0, 0.2, 1);
+  --atmr-motion-easing-expressive-entrance: cubic-bezier(0, 0, 0.3, 1);
+  --atmr-motion-easing-expressive-exit:     cubic-bezier(0.8, 0.15, 1, 1);
+  --atmr-motion-easing-expressive-bouncing: cubic-bezier(0.7, 0.3, 0.5, 1.25);
+
+  /* ═══ TYPOGRAPHY: FONT FAMILY ═══ */
+  --atmr-font-family-base: 'Rostelecom Basis', -apple-system,
+                           BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* ═══ TYPOGRAPHY: DISPLAY ═══ */
+  --atmr-font-display-l:            500 48px/52px var(--atmr-font-family-base);
+  --atmr-font-display-l-strong:     700 48px/52px var(--atmr-font-family-base);
+  --atmr-font-display-m:            500 42px/44px var(--atmr-font-family-base);
+  --atmr-font-display-m-strong:     700 42px/44px var(--atmr-font-family-base);
+  --atmr-font-display-s:            500 32px/44px var(--atmr-font-family-base);
+  --atmr-font-display-s-strong:     700 32px/44px var(--atmr-font-family-base);
+
+  /* ═══ TYPOGRAPHY: HEADING ═══ */
+  --atmr-font-heading-h1: 700 28px/32px var(--atmr-font-family-base);
+  --atmr-font-heading-h2: 700 22px/24px var(--atmr-font-family-base);
+  --atmr-font-heading-h3: 700 18px/20px var(--atmr-font-family-base);
+  --atmr-font-heading-h4: 700 16px/20px var(--atmr-font-family-base);
+  --atmr-font-heading-h5: 700 14px/20px var(--atmr-font-family-base);
+
+  /* ═══ TYPOGRAPHY: BODY ═══ */
+  --atmr-font-body-l:        400 18px/26px var(--atmr-font-family-base);
+  --atmr-font-body-l-strong: 500 18px/26px var(--atmr-font-family-base);
+  --atmr-font-body-m:        400 16px/24px var(--atmr-font-family-base);
+  --atmr-font-body-m-strong: 500 16px/24px var(--atmr-font-family-base);
+  --atmr-font-body-s:        400 14px/20px var(--atmr-font-family-base);
+  --atmr-font-body-s-strong: 500 14px/20px var(--atmr-font-family-base);
+
+  /* ═══ TYPOGRAPHY: DESCRIPTION ═══ */
+  --atmr-font-description-l:        400 12px/16px var(--atmr-font-family-base);
+  --atmr-font-description-l-strong: 500 12px/16px var(--atmr-font-family-base);
+  --atmr-font-description-m:        400 11.008px/16px var(--atmr-font-family-base);
+  --atmr-font-description-m-strong: 500 11.008px/16px var(--atmr-font-family-base);
+  --atmr-font-description-s:        400 10px/12px var(--atmr-font-family-base);
+  --atmr-font-description-s-strong: 500 10px/12px var(--atmr-font-family-base);
+}

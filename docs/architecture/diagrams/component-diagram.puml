@@ -1,0 +1,80 @@
+@startuml component-diagram
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle rectangle
+skinparam defaultFontName "DejaVu Sans"
+
+title Компонентная диаграмма CRM ИТ Школы Ростелеком
+
+actor "Сотрудник ИТ Школы\n(NAM / Manager / Admin)" as User
+actor "Сотрудник вуза\n(внешний контакт)" as UniContact
+
+rectangle "Клиентская часть" {
+  component "CRM Frontend\n(React 18 + Vite + TypeScript)" as FE
+  component "Service Worker\n(PWA, offline-очередь)" as SW
+}
+
+rectangle "Backend-слой" {
+  component "CRM Backend\n(Node.js 20 + Express 4)" as BE
+  component "CRM Worker\n(BullMQ: email, push, integration sync)" as Worker
+  component "WebSocket Server\n(realtime-синхронизация)" as WS
+}
+
+rectangle "Хранилища" {
+  database "PostgreSQL 16\n(данные + pgvector)" as PG
+  database "Redis 7\n(cache, rate limit, BullMQ)" as Redis
+  database "MinIO\n(S3-совместимое файловое хранилище)" as MinIO
+}
+
+rectangle "Инфраструктура" {
+  component "Keycloak 26\n(OIDC-провайдер)" as KC
+  component "Nginx\n(reverse proxy + SSL)" as Nginx
+  component "Prometheus + Grafana\n(метрики)" as Prom
+  component "Loki + Promtail\n(логи)" as Loki
+  component "Tempo + OTel\n(tрейсы)" as Tempo
+  component "ClamAV\n(антивирус)" as AV
+}
+
+rectangle "Внешние системы" {
+  component "LMS ИТ Школы РТК" as LMS
+  component "Сайт ИТ Школы\n(Laravel CMS)" as Site
+  component "Keycloak IdP\n(реальная аутентификация)" as KC_real
+}
+
+User --> Nginx : HTTPS
+UniContact --> Site : HTTP
+UniContact --> LMS : HTTP
+
+Nginx --> FE : / → статика
+Nginx --> BE : /api/* → REST
+Nginx --> BE : /ws → WebSocket
+Nginx --> KC : /realms/* → OIDC
+Nginx --> MinIO : /storage/* → файлы
+
+FE --> KC : OIDC + PKCE
+FE --> BE : REST + JWT
+FE --> WS : realtime-подписка
+FE ..> SW : регистрирует
+
+BE --> PG : Prisma
+BE --> Redis : ioredis
+BE --> MinIO : AWS SDK
+BE --> KC : JWKS + Admin API
+BE --> Worker : queues
+BE --> WS : broadcast
+BE --> AV : INSTREAM
+BE --> LMS : REST sync
+BE --> Site : REST sync
+Site ..> BE : webhook (HMAC)
+
+Worker --> PG
+Worker --> Redis
+Worker --> MinIO
+
+Prom ..> BE : /metrics
+Prom ..> PG : postgres-exporter
+Prom ..> Redis : redis-exporter
+Loki <.. Promtail : logs
+Tempo <.. BE : OTLP
+
+@enduml

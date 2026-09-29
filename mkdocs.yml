@@ -1,0 +1,99 @@
+site_name: ИТ Школа Ростелеком · CRM
+site_description: Техническая документация CRM-системы
+site_url: https://rt-it-school.github.io/crm/
+repo_url: https://github.com/rt-it-school/crm
+repo_name: rt-it-school/crm
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: ru
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+  palette:
+    - scheme: default
+      primary: light blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-7
+        name: Тёмная тема
+    - scheme: slate
+      primary: light blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-4
+        name: Светлая тема
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - attr_list
+  - def_list
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search:
+      lang: ru
+  - awesome-pages
+  - swagger-ui-tag
+
+nav:
+  - Главная: README.md
+  - Начало работы:
+      - Установка: getting-started/install.md
+      - Разработка: getting-started/dev.md
+      - Деплой: getting-started/deploy.md
+  - Архитектура:
+      - Обзор: architecture/README.md
+      - ADR: adr/README.md
+  - Методы обработки данных: data-methods.md
+  - Условия и ограничения: limitations.md
+  - API:
+      - Обзор: api/README.md
+      - Swagger UI: api/swagger.md
+  - Руководства:
+      - Пользователь: guides/user.md
+      - Администратор: guides/admin.md
+  - Runbooks:
+      - Обзор: runbooks/README.md
+      - Redis down: runbooks/redis-down.md
+      - Keycloak down: runbooks/keycloak-down.md
+      - Restore из бэкапа: runbooks/restore-from-backup.md
+      - Postgres медленный: runbooks/postgres-slow.md
+      - Диск полный: runbooks/disk-full.md
+      - Nginx 502: runbooks/nginx-502.md
+  - Нагрузочное тестирование: loadtest/report.md
+  - Безопасность: SECURITY.md
+  - Обработка данных: DATA_PROCESSING.md
+  - Changelog: CHANGELOG.md
+  - Contributing: CONTRIBUTING.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/rt-it-school/crm
+
+extra_css:
+  - stylesheets/extra.css

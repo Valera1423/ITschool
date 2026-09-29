@@ -1,0 +1,163 @@
+/* frontend/src/styles/ds/themes.css */
+
+/* СВЕТЛАЯ ТЕМА */
+.Theme_root_rtk_default_light {
+  /* Accent */
+  --atmr-accent-default:        #ff4f12;
+  --atmr-accent-hover:          #e84610;
+  --atmr-accent-active:         #cc3d0d;
+  --atmr-accent-soft:           #ffe6dc;
+  --atmr-accent-muted:          #fff1eb;
+  --atmr-accent-on-accent:      #ffffff;
+  --atmr-accent-container-default: #ffe6dc;
+  --atmr-accent-container-soft:    #fff1eb;
+  --atmr-accent-container-hover:   #ffd4c2;
+  --atmr-accent-container-active:  #ffbda1;
+  --atmr-accent-on-container:      #cc3d0d;
+
+  /* Foreground */
+  --atmr-fg-default:   #0f172a;
+  --atmr-fg-soft:      #475569;
+  --atmr-fg-muted:     #94a3b8;
+  --atmr-fg-disabled:  #cbd5e1;
+  --atmr-fg-inverse:   #ffffff;
+
+  /* Background */
+  --atmr-bg-page:      #f8fafc;
+  --atmr-bg-filled:    #f1f5f9;
+  --atmr-bg-surface1:  #ffffff;
+  --atmr-bg-surface2:  #f8fafc;
+  --atmr-bg-surface3:  #f1f5f9;
+  --atmr-bg-surface4:  #e2e8f0;
+  --atmr-bg-surface5:  #cbd5e1;
+  --atmr-bg-disabled:  #f1f5f9;
+  --atmr-bg-elevated-0:  #ffffff;
+  --atmr-bg-elevated-s:  #ffffff;
+  --atmr-bg-elevated-m:  #ffffff;
+  --atmr-bg-elevated-l:  #ffffff;
+  --atmr-bg-elevated-xl: #ffffff;
+
+  /* Border */
+  --atmr-border-default: #e2e8f0;
+  --atmr-border-soft:    #f1f5f9;
+  --atmr-border-muted:   #cbd5e1;
+  --atmr-border-strong:  #94a3b8;
+  --atmr-border-hover:   #cbd5e1;
+  --atmr-border-focus:   var(--atmr-accent-default);
+
+  /* Static */
+  --atmr-static-white: #ffffff;
+  --atmr-static-black: #0f172a;
+
+  /* Status */
+  --atmr-success-default: #10b981;
+  --atmr-success-soft:    #d1fae5;
+  --atmr-success-fg:      #065f46;
+  --atmr-success-on:      #ffffff;
+  --atmr-warning-default: #f59e0b;
+  --atmr-warning-soft:    #fef3c7;
+  --atmr-warning-fg:      #78350f;
+  --atmr-warning-on:      #ffffff;
+  --atmr-error-default:   #ef4444;
+  --atmr-error-soft:      #fee2e2;
+  --atmr-error-fg:        #7f1d1d;
+  --atmr-error-on:        #ffffff;
+  --atmr-info-default:    #0ea5e9;
+  --atmr-info-soft:       #e0f2fe;
+  --atmr-info-fg:         #075985;
+  --atmr-info-on:         #ffffff;
+
+  /* Hover-состояния */
+  --atmr-surface-hover:      #f1f5f9;
+  --atmr-surface-active:     #e2e8f0;
+  --atmr-accent-soft-hover:  #ffd4c2;
+  --atmr-error-soft-hover:   #fecaca;
+  --atmr-success-soft-hover: #a7f3d0;
+  --atmr-warning-soft-hover: #fde68a;
+  --atmr-info-soft-hover:    #bae6fd;
+
+  /* Тени */
+  --atmr-shadow-bottom-s:  0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --atmr-shadow-bottom-m:  0 4px 12px -2px rgba(15, 23, 42, 0.08);
+  --atmr-shadow-bottom-l:  0 12px 24px -4px rgba(15, 23, 42, 0.12);
+  --atmr-shadow-bottom-xl: 0 20px 40px -8px rgba(15, 23, 42, 0.16);
+  --atmr-shadow-bottom-accent: 0 8px 24px -4px rgba(255, 79, 18, 0.32);
+  --atmr-shadow-top:       0 -4px 12px -2px rgba(15, 23, 42, 0.08);
+}
+
+/* ТЁМНАЯ ТЕМА */
+.Theme_root_rtk_default_dark {
+  --atmr-accent-default:        #ff6b35;
+  --atmr-accent-hover:          #ff8255;
+  --atmr-accent-active:         #e85a25;
+  --atmr-accent-soft:           #3d1e11;
+  --atmr-accent-muted:          #2a1509;
+  --atmr-accent-on-accent:      #ffffff;
+  --atmr-accent-container-default: #3d1e11;
+  --atmr-accent-container-soft:    #2a1509;
+  --atmr-accent-container-hover:   #4d2616;
+  --atmr-accent-container-active:  #5d2e1b;
+  --atmr-accent-on-container:      #ff8255;
+
+  --atmr-fg-default:   #f1f5f9;
+  --atmr-fg-soft:      #cbd5e1;
+  --atmr-fg-muted:     #64748b;
+  --atmr-fg-disabled:  #475569;
+  --atmr-fg-inverse:   #0f172a;
+
+  --atmr-bg-page:      #0f172a;
+  --atmr-bg-filled:    #1e293b;
+  --atmr-bg-surface1:  #1e293b;
+  --atmr-bg-surface2:  #293548;
+  --atmr-bg-surface3:  #334155;
+  --atmr-bg-surface4:  #475569;
+  --atmr-bg-surface5:  #64748b;
+  --atmr-bg-disabled:  #1e293b;
+  --atmr-bg-elevated-0:  #0f172a;
+  --atmr-bg-elevated-s:  #1e293b;
+  --atmr-bg-elevated-m:  #293548;
+  --atmr-bg-elevated-l:  #334155;
+  --atmr-bg-elevated-xl: #475569;
+
+  --atmr-border-default: #334155;
+  --atmr-border-soft:    #1e293b;
+  --atmr-border-muted:   #475569;
+  --atmr-border-strong:  #64748b;
+  --atmr-border-hover:   #475569;
+  --atmr-border-focus:   var(--atmr-accent-default);
+
+  --atmr-static-white: #ffffff;
+  --atmr-static-black: #0f172a;
+
+  --atmr-success-default: #34d399;
+  --atmr-success-soft:    #064e3b;
+  --atmr-success-fg:      #a7f3d0;
+  --atmr-success-on:      #052e16;
+  --atmr-warning-default: #fbbf24;
+  --atmr-warning-soft:    #78350f;
+  --atmr-warning-fg:      #fde68a;
+  --atmr-warning-on:      #451a03;
+  --atmr-error-default:   #f87171;
+  --atmr-error-soft:      #7f1d1d;
+  --atmr-error-fg:        #fecaca;
+  --atmr-error-on:        #450a0a;
+  --atmr-info-default:    #38bdf8;
+  --atmr-info-soft:       #075985;
+  --atmr-info-fg:         #bae6fd;
+  --atmr-info-on:         #082f49;
+
+  --atmr-surface-hover:      #334155;
+  --atmr-surface-active:     #475569;
+  --atmr-accent-soft-hover:  #4d2616;
+  --atmr-error-soft-hover:   #991b1b;
+  --atmr-success-soft-hover: #065f46;
+  --atmr-warning-soft-hover: #92400e;
+  --atmr-info-soft-hover:    #0c4a6e;
+
+  --atmr-shadow-bottom-s:  0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --atmr-shadow-bottom-m:  0 4px 12px -2px rgba(0, 0, 0, 0.5);
+  --atmr-shadow-bottom-l:  0 12px 24px -4px rgba(0, 0, 0, 0.6);
+  --atmr-shadow-bottom-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.7);
+  --atmr-shadow-bottom-accent: 0 8px 24px -4px rgba(255, 107, 53, 0.4);
+  --atmr-shadow-top:       0 -4px 12px -2px rgba(0, 0, 0, 0.5);
+}
