@@ -6,7 +6,7 @@
 # чтобы puppeteer не качал свой Chrome (150 МБ).
 # ============================================================
 
-FROM node:20-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /app
 
@@ -38,7 +38,7 @@ RUN npm run build
 # ============================================================
 # Production
 # ============================================================
-FROM node:20-alpine AS runner
+FROM node:26-alpine AS runner
 
 WORKDIR /app
 
